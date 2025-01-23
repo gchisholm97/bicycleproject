@@ -124,14 +124,14 @@
             // Define the time window parameters
             const startTime = new Date('2024-07-04T00:00:00');
             const endTime = new Date('2024-07-04T23:59:59');
-            const timeWindowSeconds = 1;
+            const timeWindowMinutes = 1;
 
             // Generate time windows
             const timeWindows = [];
             let currentTime = new Date(startTime);
             while (currentTime <= endTime) {
                 const nextTime = new Date(currentTime);
-                nextTime.setMinutes(currentTime.getMinutes() + setMinutes(,timeWindowSeconds));
+                nextTime.setMinutes(currentTime.getMinutes() + timeWindowMinutes);
                 timeWindows.push([currentTime, nextTime]);
                 currentTime = nextTime;
             }
