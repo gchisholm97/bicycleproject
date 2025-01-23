@@ -1,0 +1,262 @@
+<head>
+    <meta charset="utf-8" />
+    <title>Rental Bicycle Traffic in Chicago</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 20px;
+            line-height: 30px;
+        }
+
+        h2 {
+            font-size: 14px;
+            line-height: 20px;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #2dc4b2;
+        }
+
+        #console {
+            position: absolute;
+            width: 240px;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: white;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #controls button,
+        #controls input[type="range"] {
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            background-color: #0074D9;
+            color: white;
+            font-size: 14px;
+        }
+
+        #controls button:hover {
+            background-color: #0056A3;
+        }
+
+        #controls button:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+
+        #controls input[type="range"] {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+    <div id="console">
+        <h1>Rental Bicycle Traffic in Chicago</h1>
+        <p>
+            Data:
+            <a href="https://divvybikes.com/system-data">Divvy rental bicycle
+                traffic density</a>
+            in Chicago, July 4 2024
+        </p>
+    </div>
+    <div id="controls">
+        <label for="speed">Speed:</label>
+        <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1">
+        <span id="speed-display">1x</span>
+
+        <button id="play">Play</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+        <br />
+        <label for="time-slider">Time:</label>
+        <input type="range" id="time-slider" min="0" step="1" value="0">
+        <span id="time-display">00:00:00</span>
+    </div>
+
+    <script>
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZ2NoaXNob2xtOTciLCJhIjoiY200bG8wZGVxMDNmNDJpcTZlZnRiNmhyaCJ9.q3Z-B7c7danrOXXe2lPUfw';
+
+        const map = new mapboxgl.Map({
+            container: 'map', // container element id
+            style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
+            center: [-87.640, 41.906], // initial map center in [lon, lat]
+            zoom: 13
+        });
+
+        map.on('load', () => {
+            // Define the time window parameters
+            const startTime = new Date('2024-07-04T00:00:00');
+            const endTime = new Date('2024-07-04T23:59:59');
+            const timeWindowMinutes = 15;
+
+            // Generate time windows
+            const timeWindows = [];
+            let currentTime = new Date(startTime);
+            while (currentTime <= endTime) {
+                const nextTime = new Date(currentTime);
+                nextTime.setMinutes(currentTime.getMinutes() + timeWindowMinutes);
+                timeWindows.push([currentTime, nextTime]);
+                currentTime = nextTime;
+            }
+
+            // Add the tileset source
+            map.addSource('bike-traffic', {
+                type: 'vector',
+                url: 'mapbox://gchisholm97.timed_rides', // Replace with your tileset ID
+            });
+
+            // Add a heatmap layer
+            map.addLayer({
+                id: 'heatmap-layer',
+                type: 'heatmap',
+                source: 'bike-traffic',
+                'source-layer': 'timed_rides', // Replace with the source layer name
+                paint: {
+                    'heatmap-intensity': 1,
+                    'heatmap-radius': 4,
+                    'heatmap-color': [
+                        "interpolate",
+                        ["linear"],
+                        ["heatmap-density"],
+                        0,
+                        "rgba(0, 0, 255, 0)",
+                        0.1,
+                        "royalblue",
+                        0.3,
+                        "cyan",
+                        0.5,
+                        "lime",
+                        0.7,
+                        "yellow",
+                        1,
+                        "red"
+                    ],
+                },
+            });
+
+            // Animation state
+            let currentWindowIndex = 0;
+            let animationFrameId = null;
+            let lastUpdateTime = Date.now();
+
+            // Playback speed factor (1 is normal speed, < 1 is slower, > 1 is faster)
+            let speedFactor = 1;
+
+            function updateHeatmap() {
+                const [windowStart, windowEnd] = timeWindows[currentWindowIndex];
+                // Convert time to ISO strings
+                const startISO = windowStart.toISOString();
+                const endISO = windowEnd.toISOString();
+
+                // Filter the heatmap data
+                map.setFilter('heatmap-layer', [
+                    'all',
+                    ['>=', ['get', 'point_time'], startISO],
+                    ['<', ['get', 'point_time'], endISO],
+                ]);
+
+                // Update the time display
+                document.getElementById('time-display').textContent = `${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
+
+                // Update the slider position
+                document.getElementById('time-slider').value = currentWindowIndex;
+            }
+
+            // Smooth animation function using requestAnimationFrame
+            function animate() {
+                const currentTime = Date.now();
+                const timeDifference = currentTime - lastUpdateTime;
+
+                // If enough time has passed (considering the speed factor), update the frame
+                if (timeDifference >= (500 / speedFactor)) {
+                    currentWindowIndex = (currentWindowIndex + 1) % timeWindows.length;
+                    updateHeatmap();
+                    lastUpdateTime = currentTime;
+                }
+
+                // Continue the animation loop
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            function playAnimation() {
+                if (!animationFrameId) {
+                    animate();
+                }
+            }
+
+            function pauseAnimation() {
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            }
+
+            function resetAnimation() {
+                pauseAnimation();
+                currentWindowIndex = 0;
+                updateHeatmap();
+            }
+
+            // Slider change event
+            document.getElementById('time-slider').addEventListener('input', (e) => {
+                currentWindowIndex = parseInt(e.target.value, 10);
+                updateHeatmap();
+            });
+
+            // Speed control event listener
+            document.getElementById('speed').addEventListener('input', (e) => {
+                speedFactor = parseFloat(e.target.value);
+                console.log(`Speed Factor: ${speedFactor}`);
+            });
+
+            // Attach event listeners to controls
+            document.getElementById('play').addEventListener('click', playAnimation);
+            document.getElementById('pause').addEventListener('click', pauseAnimation);
+            document.getElementById('reset').addEventListener('click', resetAnimation);
+
+            // Set the slider max value based on the number of time windows
+            document.getElementById('time-slider').max = timeWindows.length - 1;
+
+            // Start the animation initially (optional)
+            playAnimation();
+        });
+
+
+    </script>
+
+</body>
