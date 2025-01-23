@@ -124,17 +124,19 @@
             // Define the time window parameters
             const startTime = new Date('2024-07-04T00:00:00');
             const endTime = new Date('2024-07-04T23:59:59');
-            const timeWindowMinutes = 1;
+            const timeWindowSeconds = 30; // Define time window in seconds
 
             // Generate time windows
             const timeWindows = [];
             let currentTime = new Date(startTime);
             while (currentTime <= endTime) {
                 const nextTime = new Date(currentTime);
-                nextTime.setMinutes(currentTime.getMinutes() + timeWindowMinutes);
+                nextTime.setSeconds(currentTime.getSeconds() + timeWindowSeconds);
                 timeWindows.push([currentTime, nextTime]);
                 currentTime = nextTime;
             }
+
+            console.log(timeWindows);
 
             // Add the tileset source
             map.addSource('bike-traffic', {
