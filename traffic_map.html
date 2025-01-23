@@ -131,7 +131,7 @@
             let currentTime = new Date(startTime);
             while (currentTime <= endTime) {
                 const nextTime = new Date(currentTime);
-                nextTime.setMinutes(currentTime.getMinutes() + timeWindowMinutes);
+                nextTime.setMinutes(currentTime.getMinutes() + timeWindowMinutes.setMinutes);
                 timeWindows.push([currentTime, nextTime]);
                 currentTime = nextTime;
             }
@@ -195,10 +195,6 @@
                 // Update the time display
                 document.getElementById('time-display').textContent = `${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
 
-// Update the time display
-                document.getElementById('speed-display').textContent = `${document.getElementById('speed-display').value}`
-
-                
                 // Update the slider position
                 document.getElementById('time-slider').value = currentWindowIndex;
             }
