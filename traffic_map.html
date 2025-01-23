@@ -124,7 +124,7 @@
             // Define the time window parameters
             const startTime = new Date('2024-07-04T00:00:00');
             const endTime = new Date('2024-07-04T23:59:59');
-            const timeWindowMinutes = 1;
+            const timeWindowMinutes = 0.01;
 
             // Generate time windows
             const timeWindows = [];
@@ -177,7 +177,7 @@
             let lastUpdateTime = Date.now();
 
             // Playback speed factor (1 is normal speed, < 1 is slower, > 1 is faster)
-            let speedFactor = 1;
+            let speedFactor = 2;
 
             function updateHeatmap() {
                 const [windowStart, windowEnd] = timeWindows[currentWindowIndex];
@@ -195,6 +195,10 @@
                 // Update the time display
                 document.getElementById('time-display').textContent = `${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
 
+// Update the time display
+                document.getElementById('speed-display').textContent = `${document.getElementById('speed-display').value}`
+
+                
                 // Update the slider position
                 document.getElementById('time-slider').value = currentWindowIndex;
             }
