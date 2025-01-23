@@ -144,6 +144,52 @@
                 url: 'mapbox://gchisholm97.timed_rides', // Replace with your tileset ID
             });
 
+// Add a sky layer for simulating the sun
+map.addLayer({
+    id: 'sky-layer',
+    type: 'sky',
+    paint: {
+        'sky-type': 'atmosphere',
+        'sky-atmosphere-sun': [0, 90], // Initial position of the sun
+        'sky-atmosphere-sun-intensity': 15,
+        'sky-atmosphere-halo-color': 'rgba(255, 223, 186, 1)',
+        'sky-atmosphere-sun-color': 'rgba(255, 236, 170, 1)'
+    }
+});
+
+// Function to calculate the sun's position (azimuth and altitude)
+function calculateSunPosition(time) {
+    const hours = time.getUTCHours() + time.getUTCMinutes() / 60;
+    const azimuth = (hours / 24) * 360 - 90; // Map time to sun azimuth (0-360 degrees)
+    const altitude = Math.sin((hours / 24) * Math.PI) * 45; // Map time to altitude (-45 to 45 degrees)
+    return [azimuth, altitude];
+}
+
+// Update the sun's position based on the current time window
+function updateSunPosition() {
+    const [windowStart] = timeWindows[currentWindowIndex];
+    const [azimuth, altitude] = calculateSunPosition(windowStart);
+    map.setPaintProperty('sky-layer', 'sky-atmosphere-sun', [azimuth, altitude]);
+}
+
+// Modify `updateHeatmap` to include the sun update
+function updateHeatmap() {
+    const [windowStart, windowEnd] = timeWindows[currentWindowIndex];
+    const startISO = windowStart.toISOString();
+    const endISO = windowEnd.toISOString();
+
+    map.setFilter('heatmap-layer', [
+        'all',
+        ['>=', ['get', 'point_time'], startISO],
+        ['<', ['get', 'point_time'], endISO],
+    ]);
+
+    document.getElementById('time-display').textContent = `${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
+    document.getElementById('time-slider').value = currentWindowIndex;
+
+    updateSunPosition(); // Update the sun position
+}
+            
             // Add a heatmap layer
             map.addLayer({
                 id: 'heatmap-layer',
