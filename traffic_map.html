@@ -114,8 +114,10 @@
         const map = new mapboxgl.Map({
             container: 'map', // container element id
             style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
-            center: [-87.640, 41.906], // initial map center in [lon, lat]
-            zoom: 13
+            center: [-87.627454, 41.903424], // initial map center in [lon, lat]
+            zoom: 15.47,
+            pitch: 73.00,
+            bearing: -60.92
         });
 
         map.on('load', () => {
