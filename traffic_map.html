@@ -124,7 +124,7 @@
             // Define the time window parameters
             const startTime = new Date('2024-07-04T00:00:00');
             const endTime = new Date('2024-07-04T23:59:59');
-            const timeWindowMinutes = 15;
+            const timeWindowMinutes = 1;
 
             // Generate time windows
             const timeWindows = [];
@@ -205,7 +205,7 @@
                 const timeDifference = currentTime - lastUpdateTime;
 
                 // If enough time has passed (considering the speed factor), update the frame
-                if (timeDifference >= (500 / speedFactor)) {
+                if (timeDifference >= (100 / speedFactor)) {
                     currentWindowIndex = (currentWindowIndex + 1) % timeWindows.length;
                     updateHeatmap();
                     lastUpdateTime = currentTime;
