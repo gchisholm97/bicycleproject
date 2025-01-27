@@ -134,7 +134,9 @@
 
     mapboxgl.setDebug(true);
 
-    const features = map.querySourceFeatures('line-data');
+    const features = map.querySourceFeatures('line-data', {
+        sourceLayer: 'new_lines-886q4q',
+      });
     console.log('Queried features:', features);  // Add this line to debug
 
 
