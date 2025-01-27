@@ -99,18 +99,9 @@
       });
 
       map.addLayer({
-        id: 'point-layer',
-        type: 'circle',
-        source: 'interpolated-points',
-        layout: {
-          visibility: 'none', // Keep the layer hidden
-        },
-      });
-
-      map.addLayer({
         id: 'heatmap-layer',
         type: 'heatmap',
-        source: 'point-layer',
+        source: 'interpolated-points',
         paint: {
           'heatmap-intensity': 1,
           'heatmap-radius': 4,
