@@ -80,17 +80,6 @@
         url: 'mapbox://gchisholm97.5urz7kmk',
       });
 
-      map.addLayer({
-        id: 'line-layer',
-        type: 'line',
-        source: 'line-data',
-        'source-layer': 'new_lines-886q4q',
-        paint: {
-          'line-color': '#FF0000',
-          'line-width': 3,
-        },
-      });
-
       map.addSource('interpolated-points', {
         type: 'geojson',
         data: {
