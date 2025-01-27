@@ -85,16 +85,16 @@ playButton.addEventListener('click', () => {
   } else {
     animationInterval = setInterval(() => {
       const sliderValue = parseInt(timeSlider.value, 10);
-      if (sliderValue < 1000) {
+      if (sliderValue < 100) {
         timeSlider.value = sliderValue + 1;
-        const currentTime = startTime + (timeSlider.value / 1000) * totalDuration;
+        const currentTime = startTime + (timeSlider.value / 100) * totalDuration;
         timeLabel.textContent = new Date(currentTime).toISOString();
         updateInterpolatedPoints(currentTime);
       } else {
         clearInterval(animationInterval);
         playButton.textContent = 'Play';
       }
-    }, 500); // Adjust the interval speed (milliseconds)
+    }, 100); // Adjust the interval speed (milliseconds)
     playButton.textContent = 'Pause';
   }
   isPlaying = !isPlaying;
