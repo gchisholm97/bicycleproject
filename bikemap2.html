@@ -66,17 +66,18 @@
 
     const startTime = new Date('2024-07-04T00:00:00Z').getTime();
     const endTime = new Date('2024-07-04T23:59:59Z').getTime();
-    const totalDuration = endTime - startTime;  // 86400000 milliseconds for 24 hours
+    const totalSeconds = (endTime - startTime) / 1000; // Total seconds in the day (86400 seconds)
 
     let animationInterval;
     let currentSliderValue = 0;
     let isPlaying = false;
-    let currentTimestamp = startTime;
 
-    // Slider value maps to the second within the 24-hour range.
+    timeSlider.max = totalSeconds; // Slider's range matches the total seconds in the day
+
     timeSlider.addEventListener('input', () => {
-      const sliderValue = timeSlider.value; // 0-100 scale
-      currentTimestamp = startTime + (sliderValue / 100) * totalDuration; // Map slider to actual time
+      // Slider value directly represents the number of seconds since startTime
+      const sliderValue = parseInt(timeSlider.value, 10);
+      const currentTimestamp = startTime + sliderValue * 1000; // Convert seconds to milliseconds
       timeLabel.textContent = new Date(currentTimestamp).toISOString();
       updateInterpolatedPoints(currentTimestamp);
     });
@@ -87,17 +88,17 @@
         playButton.textContent = 'Play';
       } else {
         animationInterval = setInterval(() => {
-          if (currentSliderValue < 100) {
-            currentSliderValue += 1; // Increment slider by 1 second (mapped to percentage)
+          if (currentSliderValue < totalSeconds) {
+            currentSliderValue += 1; // Increment by 1 second
             timeSlider.value = currentSliderValue;
-            currentTimestamp = startTime + (currentSliderValue / 100) * totalDuration;
+            const currentTimestamp = startTime + currentSliderValue * 1000; // Convert to milliseconds
             timeLabel.textContent = new Date(currentTimestamp).toISOString();
             updateInterpolatedPoints(currentTimestamp);
           } else {
             clearInterval(animationInterval);
             playButton.textContent = 'Play';
           }
-        }, 100); // Refresh map every 100 milliseconds, but the slider moves every second
+        }, 1000); // Update every 1 second
         playButton.textContent = 'Pause';
       }
       isPlaying = !isPlaying;
