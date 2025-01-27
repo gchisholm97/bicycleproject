@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <head>
   <meta charset="utf-8" />
   <title>Rental Bicycle Traffic in Chicago</title>
@@ -7,18 +8,19 @@
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
   <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
 
-        #map {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 100%;
-        }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
     #slider-container {
       padding: 10px;
       background: rgba(255, 255, 255, 0.8);
@@ -30,11 +32,13 @@
       width: 400px;
       text-align: center;
     }
+
     #time-slider {
       width: 100%;
     }
   </style>
 </head>
+
 <body>
   <div id="map"></div>
   <div id="slider-container">
@@ -47,11 +51,11 @@
 
     const map = new mapboxgl.Map({
       container: 'map', // container element id
-            style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
-            center: [-87.627454, 41.903424], // initial map center in [lon, lat]
-            zoom: 15.47,
-            pitch: 73.00,
-            bearing: -60.92
+      style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
+      center: [-87.627454, 41.903424], // initial map center in [lon, lat]
+      zoom: 15.47,
+      pitch: 73.00,
+      bearing: -60.92
     });
 
     // Setup time slider
@@ -107,9 +111,6 @@
           'circle-color': '#007cbf',
         },
       });
-
-      // Trigger an update initially
-      updateInterpolatedPoints(startTime);
     });
 
     function updateInterpolatedPoints(targetTimestamp) {
@@ -152,7 +153,12 @@
         type: 'FeatureCollection',
         features: interpolatedPoints,
       });
+
+      // Trigger an update initially
+      updateInterpolatedPoints(startTime);
+
     }
   </script>
 </body>
+
 </html>
