@@ -132,10 +132,17 @@
       updateInterpolatedPoints(startTime);
     });
 
+    const features = map.querySourceFeatures('line-data', {
+      sourceLayer: 'new_lines-886q4q', // Verify this name
+    });
+    console.log('Queried features:', features);  // Add this line to debug
+
+
     function updateInterpolatedPoints(targetTimestamp) {
       const features = map.querySourceFeatures('line-data', {
         sourceLayer: 'new_lines-886q4q',
       });
+      console.log('Queried features:', features);  // Add this line to debug
 
       if (!features || features.length === 0) {
         console.error('No features found in the current viewport.');
