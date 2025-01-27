@@ -77,7 +77,7 @@
       // Add the vector source
       map.addSource('line-data', {
         type: 'vector',
-        url: 'mapbox://gchisholm97.timed_rides', // Replace with your tileset ID
+        url: 'mapbox://gchisholm97.5urz7kmk', // Replace with your tileset ID
       });
 
       // Add a line layer
@@ -85,7 +85,7 @@
         id: 'line-layer',
         type: 'line',
         source: 'line-data',
-        'source-layer': 'timed_rides', // Replace with your tileset source layer name
+        'source-layer': 'new_lines-886q4q', // Replace with your tileset source layer name
         paint: {
           'line-color': '#FF0000',
           'line-width': 3,
@@ -106,7 +106,7 @@
         type: 'circle',
         source: 'interpolated-points',
         paint: {
-          'circle-radius': 8,
+          'circle-radius': 4,
           'circle-color': '#007cbf',
         },
       });
@@ -117,7 +117,7 @@
 
     function updateInterpolatedPoints(targetTimestamp) {
       const features = map.querySourceFeatures('line-data', {
-        sourceLayer: 'timed_rides', // Replace with your source layer name
+        sourceLayer: 'new_lines-886q4q', // Replace with your source layer name
       });
 
       const interpolatedPoints = features
