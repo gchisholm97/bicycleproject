@@ -71,15 +71,33 @@
     let animationInterval;
     let currentSliderValue = 0;
     let isPlaying = false;
+    let isUserInteracting = false; // Tracks if the user is interacting with the slider
 
     timeSlider.max = totalSeconds; // Slider's range matches the total seconds in the day
 
+    // Handle manual slider interaction
+    timeSlider.addEventListener('mousedown', () => {
+      // Pause animation during user interaction
+      isUserInteracting = true;
+      clearInterval(animationInterval);
+      playButton.textContent = 'Play';
+      isPlaying = false;
+    });
+
     timeSlider.addEventListener('input', () => {
-      // Slider value directly represents the number of seconds since startTime
+      // Update timestamp and map when slider moves
       const sliderValue = parseInt(timeSlider.value, 10);
       const currentTimestamp = startTime + sliderValue * 1000; // Convert seconds to milliseconds
       timeLabel.textContent = new Date(currentTimestamp).toISOString();
       updateInterpolatedPoints(currentTimestamp);
+    });
+
+    timeSlider.addEventListener('mouseup', () => {
+      // Resume animation after user interaction
+      isUserInteracting = false;
+      if (!isPlaying) {
+        playButton.textContent = 'Play';
+      }
     });
 
     playButton.addEventListener('click', () => {
@@ -88,17 +106,17 @@
         playButton.textContent = 'Play';
       } else {
         animationInterval = setInterval(() => {
-          if (currentSliderValue < totalSeconds) {
+          if (!isUserInteracting && currentSliderValue < totalSeconds) {
             currentSliderValue += 1; // Increment by 1 second
             timeSlider.value = currentSliderValue;
             const currentTimestamp = startTime + currentSliderValue * 1000; // Convert to milliseconds
             timeLabel.textContent = new Date(currentTimestamp).toISOString();
             updateInterpolatedPoints(currentTimestamp);
-          } else {
+          } else if (currentSliderValue >= totalSeconds) {
             clearInterval(animationInterval);
             playButton.textContent = 'Play';
           }
-        }, 100); // Update every 1 millisecond
+        }, 1000); // Update every 1 second
         playButton.textContent = 'Pause';
       }
       isPlaying = !isPlaying;
