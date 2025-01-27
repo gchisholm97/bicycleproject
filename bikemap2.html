@@ -89,14 +89,31 @@
       });
 
       map.addLayer({
-        id: 'point-layer',
-        type: 'circle',
-        source: 'interpolated-points',
-        paint: {
-          'circle-radius': 4,
-          'circle-color': '#007cbf',
-        },
-      });
+                id: 'heatmap-layer',
+                type: 'heatmap',
+                source: 'interpolated-points',
+                paint: {
+                    'heatmap-intensity': 1,
+                    'heatmap-radius': 4,
+                    'heatmap-color': [
+                        "interpolate",
+                        ["linear"],
+                        ["heatmap-density"],
+                        0,
+                        "rgba(0, 0, 255, 0)",
+                        0.1,
+                        "royalblue",
+                        0.3,
+                        "cyan",
+                        0.5,
+                        "lime",
+                        0.7,
+                        "yellow",
+                        1,
+                        "red"
+                    ],
+                },
+            });
 
       // Trigger the initial update after loading
       updateInterpolatedPoints(startTime);
