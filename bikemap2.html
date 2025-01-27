@@ -43,13 +43,15 @@
   </div>
 
   <script>
-    mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2NoaXNob2xtOTciLCJhIjoiY200bG8wZGVxMDNmNDJpcTZlZnRiNmhyaCJ9.q3Z-B7c7danrOXXe2lPUfw';
 
     const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: [-74.006, 40.7128],
-      zoom: 13,
+      container: 'map', // container element id
+            style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
+            center: [-87.627454, 41.903424], // initial map center in [lon, lat]
+            zoom: 15.47,
+            pitch: 73.00,
+            bearing: -60.92
     });
 
     // Setup time slider
@@ -57,8 +59,8 @@
     const timeLabel = document.getElementById('time-label');
 
     // Define the time range for the slider
-    const startTime = new Date('2025-01-27T10:00:00Z').getTime(); // Replace with your data's start time
-    const endTime = new Date('2025-01-27T18:00:00Z').getTime(); // Replace with your data's end time
+    const startTime = new Date('2024-07-04T10:00:00Z').getTime(); // Replace with your data's start time
+    const endTime = new Date('2024-07-04T23:59:59Z').getTime(); // Replace with your data's end time
     const totalDuration = endTime - startTime;
 
     timeSlider.addEventListener('input', () => {
@@ -72,7 +74,7 @@
       // Add the vector source
       map.addSource('line-data', {
         type: 'vector',
-        url: 'mapbox://your-tileset-id', // Replace with your tileset ID
+        url: 'mapbox://gchisholm97.timed_rides', // Replace with your tileset ID
       });
 
       // Add a line layer
@@ -80,7 +82,7 @@
         id: 'line-layer',
         type: 'line',
         source: 'line-data',
-        'source-layer': 'your-layer-name', // Replace with your tileset source layer name
+        'source-layer': 'timed_rides', // Replace with your tileset source layer name
         paint: {
           'line-color': '#FF0000',
           'line-width': 3,
@@ -112,7 +114,7 @@
 
     function updateInterpolatedPoints(targetTimestamp) {
       const features = map.querySourceFeatures('line-data', {
-        sourceLayer: 'your-layer-name', // Replace with your source layer name
+        sourceLayer: 'timed_rides', // Replace with your source layer name
       });
 
       const interpolatedPoints = features
