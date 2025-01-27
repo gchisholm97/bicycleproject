@@ -132,6 +132,8 @@
       updateInterpolatedPoints(startTime);
     });
 
+    mapboxgl.setDebug(true);
+
     const features = map.querySourceFeatures('line-data');
     console.log('Queried features:', features);  // Add this line to debug
 
