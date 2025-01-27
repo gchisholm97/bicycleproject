@@ -75,28 +75,25 @@
 
     timeSlider.max = totalSeconds; // Slider's range matches the total seconds in the day
 
-    // Handle manual slider interaction
+    // Pause animation when the user starts interacting with the slider
     timeSlider.addEventListener('mousedown', () => {
-      // Pause animation during user interaction
       isUserInteracting = true;
       clearInterval(animationInterval);
-      playButton.textContent = 'Play';
-      isPlaying = false;
     });
 
+    // Update map and timestamp while the slider is being moved
     timeSlider.addEventListener('input', () => {
-      // Update timestamp and map when slider moves
       const sliderValue = parseInt(timeSlider.value, 10);
       const currentTimestamp = startTime + sliderValue * 1000; // Convert seconds to milliseconds
       timeLabel.textContent = new Date(currentTimestamp).toISOString();
       updateInterpolatedPoints(currentTimestamp);
     });
 
+    // Resume animation when the user finishes interacting with the slider
     timeSlider.addEventListener('mouseup', () => {
-      // Resume animation after user interaction
       isUserInteracting = false;
-      if (!isPlaying) {
-        playButton.textContent = 'Play';
+      if (isPlaying) {
+        startAnimation(); // Resume animation
       }
     });
 
@@ -105,22 +102,27 @@
         clearInterval(animationInterval);
         playButton.textContent = 'Play';
       } else {
-        animationInterval = setInterval(() => {
-          if (!isUserInteracting && currentSliderValue < totalSeconds) {
-            currentSliderValue += 1; // Increment by 1 second
-            timeSlider.value = currentSliderValue;
-            const currentTimestamp = startTime + currentSliderValue * 1000; // Convert to milliseconds
-            timeLabel.textContent = new Date(currentTimestamp).toISOString();
-            updateInterpolatedPoints(currentTimestamp);
-          } else if (currentSliderValue >= totalSeconds) {
-            clearInterval(animationInterval);
-            playButton.textContent = 'Play';
-          }
-        }, 100); // Update every 1 second
+        startAnimation();
         playButton.textContent = 'Pause';
       }
       isPlaying = !isPlaying;
     });
+
+    function startAnimation() {
+      animationInterval = setInterval(() => {
+        if (!isUserInteracting && currentSliderValue < totalSeconds) {
+          currentSliderValue += 1; // Increment by 1 second
+          timeSlider.value = currentSliderValue;
+          const currentTimestamp = startTime + currentSliderValue * 1000; // Convert to milliseconds
+          timeLabel.textContent = new Date(currentTimestamp).toISOString();
+          updateInterpolatedPoints(currentTimestamp);
+        } else if (currentSliderValue >= totalSeconds) {
+          clearInterval(animationInterval);
+          playButton.textContent = 'Play';
+          isPlaying = false;
+        }
+      }, 1000); // Update every 1 second
+    }
 
     map.on('load', () => {
       // Add the vector source
