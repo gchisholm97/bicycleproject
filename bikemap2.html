@@ -85,9 +85,9 @@ playButton.addEventListener('click', () => {
   } else {
     animationInterval = setInterval(() => {
       const sliderValue = parseInt(timeSlider.value, 10);
-      if (sliderValue < 100) {
+      if (sliderValue < 1000) {
         timeSlider.value = sliderValue + 1;
-        const currentTime = startTime + (timeSlider.value / 100) * totalDuration;
+        const currentTime = startTime + (timeSlider.value / 1000) * totalDuration;
         timeLabel.textContent = new Date(currentTime).toISOString();
         updateInterpolatedPoints(currentTime);
       } else {
