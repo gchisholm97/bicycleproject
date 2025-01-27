@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 
 <head>
   <meta charset="utf-8" />
@@ -50,11 +51,11 @@
     mapboxgl.accessToken = 'pk.eyJ1IjoiZ2NoaXNob2xtOTciLCJhIjoiY200bG8wZGVxMDNmNDJpcTZlZnRiNmhyaCJ9.q3Z-B7c7danrOXXe2lPUfw';
 
     const map = new mapboxgl.Map({
-      container: 'map', // container element id
+      container: 'map',
       style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
-      center: [-87.627454, 41.903424], // initial map center in [lon, lat]
+      center: [-87.627454, 41.903424],
       zoom: 15.47,
-      pitch: 73.00,
+      pitch: 73.0,
       bearing: -60.92
     });
 
@@ -62,38 +63,34 @@
     const timeSlider = document.getElementById('time-slider');
     const timeLabel = document.getElementById('time-label');
 
-    // Define the time range for the slider
-    const startTime = new Date('2024-07-04T00:00:00Z').getTime(); // Replace with your data's start time
-    const endTime = new Date('2024-07-04T23:59:59Z').getTime(); // Replace with your data's end time
+    const startTime = new Date('2024-07-04T00:00:00Z').getTime();
+    const endTime = new Date('2024-07-04T23:59:59Z').getTime();
     const totalDuration = endTime - startTime;
 
     timeSlider.addEventListener('input', () => {
-      const sliderValue = timeSlider.value / 100; // Convert range (0-100) to a percentage
-      const currentTime = startTime + sliderValue * totalDuration; // Calculate the current timestamp
-      timeLabel.textContent = new Date(currentTime).toISOString(); // Display the timestamp
-      updateInterpolatedPoints(currentTime); // Update the points
+      const sliderValue = timeSlider.value / 100;
+      const currentTime = startTime + sliderValue * totalDuration;
+      timeLabel.textContent = new Date(currentTime).toISOString();
+      updateInterpolatedPoints(currentTime);
     });
 
     map.on('load', () => {
-      // Add the vector source
       map.addSource('line-data', {
         type: 'vector',
-        url: 'mapbox://gchisholm97.5urz7kmk', // Replace with your tileset ID
+        url: 'mapbox://gchisholm97.5urz7kmk',
       });
 
-      // Add a line layer
       map.addLayer({
         id: 'line-layer',
         type: 'line',
         source: 'line-data',
-        'source-layer': 'new_lines-886q4q', // Replace with your tileset source layer name
+        'source-layer': 'new_lines-886q4q',
         paint: {
           'line-color': '#FF0000',
           'line-width': 3,
         },
       });
 
-      // Initialize interpolated points layer
       map.addSource('interpolated-points', {
         type: 'geojson',
         data: {
@@ -111,52 +108,47 @@
           'circle-color': '#007cbf',
         },
       });
+
+      // Trigger the initial update after loading
+      updateInterpolatedPoints(startTime);
     });
 
     function updateInterpolatedPoints(targetTimestamp) {
       const features = map.querySourceFeatures('line-data', {
-        sourceLayer: 'new_lines-886q4q', // Replace with your source layer name
+        sourceLayer: 'new_lines-886q4q',
       });
+
+      if (!features || features.length === 0) {
+        console.error('No features found in the current viewport.');
+        return;
+      }
 
       const interpolatedPoints = features
         .map((feature) => {
           const { start_time, end_time } = feature.properties;
 
-          // Convert start_time and end_time to timestamps
           const featureStartTime = new Date(start_time).getTime();
           const featureEndTime = new Date(end_time).getTime();
 
           if (targetTimestamp >= featureStartTime && targetTimestamp <= featureEndTime) {
-            // Calculate the ratio of elapsed time
             const timeRatio =
               (targetTimestamp - featureStartTime) /
               (featureEndTime - featureStartTime);
 
-            // Calculate the total length of the line
-            const line = {
-              type: 'Feature',
-              geometry: feature.geometry,
-            };
+            const line = { type: 'Feature', geometry: feature.geometry };
             const lineLength = turf.length(line, { units: 'kilometers' });
 
-            // Calculate the distance along the line based on the time ratio
             const distance = timeRatio * lineLength;
 
-            // Interpolate the point along the line
             return turf.along(line, distance, { units: 'kilometers' });
           }
         })
-        .filter(Boolean); // Remove undefined values
+        .filter(Boolean);
 
-      // Update the interpolated points source
       map.getSource('interpolated-points').setData({
         type: 'FeatureCollection',
         features: interpolatedPoints,
       });
-
-      // Trigger an update initially
-      updateInterpolatedPoints(startTime);
-
     }
   </script>
 </body>
