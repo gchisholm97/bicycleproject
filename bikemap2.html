@@ -54,7 +54,7 @@
       container: 'map',
       style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
       center: [-87.627454, 41.903424],
-      zoom: 15.47,
+      zoom: 12,
       pitch: 73.0,
       bearing: -60.92
     });
@@ -128,6 +128,15 @@
         },
       });
 
+      map.on('data', function (e) {
+        if (e.sourceId === 'line-data' && e.isSourceLoaded) {
+          console.log('Vector tiles have finished loading.');
+
+          // Call the function to update interpolated points after the tiles are loaded
+          updateInterpolatedPoints(startTime);
+        }
+      });
+
       // Trigger the initial update after loading
       updateInterpolatedPoints(startTime);
     });
@@ -135,8 +144,8 @@
     mapboxgl.setDebug(true);
 
     const features = map.querySourceFeatures('line-data', {
-        sourceLayer: 'new_lines-886q4q',
-      });
+      sourceLayer: 'new_lines-886q4q',
+    });
     console.log('Queried features:', features);  // Add this line to debug
 
 
