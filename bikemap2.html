@@ -132,9 +132,7 @@
       updateInterpolatedPoints(startTime);
     });
 
-    const features = map.querySourceFeatures('line-data', {
-      sourceLayer: 'new_lines-886q4q', // Verify this name
-    });
+    const features = map.querySourceFeatures('line-data');
     console.log('Queried features:', features);  // Add this line to debug
 
 
