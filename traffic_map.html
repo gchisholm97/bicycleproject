@@ -94,10 +94,6 @@
         </p>
     </div>
     <div id="controls">
-        <label for="speed">Speed:</label>
-        <input type="range" id="speed" min="0.1" max="5" step="0.1" value="1">
-        <span id="speed-display">1x</span>
-
         <button id="play">Play</button>
         <button id="pause">Pause</button>
         <button id="reset">Reset</button>
@@ -178,9 +174,6 @@
             let animationFrameId = null;
             let lastUpdateTime = Date.now();
 
-            // Playback speed factor (1 is normal speed, < 1 is slower, > 1 is faster)
-            let speedFactor = 1;
-
             function updateHeatmap() {
                 const [windowStart, windowEnd] = timeWindows[currentWindowIndex];
                 // Convert time to ISO strings
@@ -206,8 +199,8 @@
                 const currentTime = Date.now();
                 const timeDifference = currentTime - lastUpdateTime;
 
-                // If enough time has passed (considering the speed factor), update the frame
-                if (timeDifference >= (100 / speedFactor)) {
+                // Update the frame if enough time has passed
+                if (timeDifference >= 100) {
                     currentWindowIndex = (currentWindowIndex + 1) % timeWindows.length;
                     updateHeatmap();
                     lastUpdateTime = currentTime;
@@ -242,12 +235,6 @@
                 updateHeatmap();
             });
 
-            // Speed control event listener
-            document.getElementById('speed').addEventListener('input', (e) => {
-                speedFactor = parseFloat(e.target.value);
-                console.log(`Speed Factor: ${speedFactor}`);
-            });
-
             // Attach event listeners to controls
             document.getElementById('play').addEventListener('click', playAnimation);
             document.getElementById('pause').addEventListener('click', pauseAnimation);
@@ -259,7 +246,6 @@
             // Start the animation initially (optional)
             playAnimation();
         });
-
 
     </script>
 
