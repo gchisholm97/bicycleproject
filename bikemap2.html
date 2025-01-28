@@ -113,7 +113,7 @@
         if (!isUserInteracting && currentSliderValue < totalSeconds) {
           currentSliderValue += 1; // Increment by 1 second
           timeSlider.value = currentSliderValue;
-          const currentTimestamp = startTime + currentSliderValue * 1000; // Convert to milliseconds
+          const currentTimestamp = startTime + currentSliderValue * 10000; // Convert to milliseconds
           timeLabel.textContent = new Date(currentTimestamp).toISOString();
           updateInterpolatedPoints(currentTimestamp);
         } else if (currentSliderValue >= totalSeconds) {
