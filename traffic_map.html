@@ -67,7 +67,7 @@
         }
 
         #toggle-console:hover {
-            color: #2dc4b2;
+            color: #76797a;
         }
 
         #controls {
@@ -114,13 +114,14 @@
 <body>
 
     <div id="map"></div>
-    <div id="console">
+    <div id="console" class="collapsed">
+        <button id="toggle-console">▼</button>
         <h1>Single-Day Bicycle Traffic Density</h1>
         <p>
             This map visualizes the rental bicycle traffic in Chicago, IL on July 4th, 2024. Using
             start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>,
-            assumed individual ride route geometries were derived using Mapbox's Directions API. By interpolating
-            points every 100 meters, and then distributing each ride's duration across those points, each ride's
+            assumed individual ride route geometries were derived using <a href="https://docs.mapbox.com/api/navigation/directions/">Mapbox's Directions API</a>. 
+            By interpolating points every 100 meters, and then distributing each ride's duration across those points, each ride's
             temporal position was approximated.
 
             Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes
