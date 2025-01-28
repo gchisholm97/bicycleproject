@@ -49,7 +49,7 @@
   </div>
 
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2NoaXNob2xtOTciLCJhIjoiY200bG8wZGVxMDNmNDJpcTZlZnRiNmhyaCJ9.q3Z-B7c7danrOXXe2lPUfw';
+    mapboxgl.accessToken = 'your_mapbox_token';
 
     const map = new mapboxgl.Map({
       container: 'map',
@@ -57,7 +57,7 @@
       center: [-87.627454, 41.903424],
       zoom: 15.47,
       pitch: 73.0,
-      bearing: -60.92
+      bearing: -60.92,
     });
 
     const timeSlider = document.getElementById('time-slider');
@@ -66,92 +66,73 @@
 
     const startTime = new Date('2024-07-04T00:00:00Z').getTime();
     const endTime = new Date('2024-07-04T23:59:59Z').getTime();
-    const totalSeconds = (endTime - startTime) / 1000; // Total seconds in the day (86400 seconds)
+    const totalSeconds = (endTime - startTime) / 1000;
 
-    let animationInterval;
-    let currentSliderValue = 0;
+    timeSlider.max = totalSeconds; // Correct slider max initialization
+
+    let frameId = null;
+    let animationStartTime = null;
     let isPlaying = false;
-    let isUserInteracting = false; // Tracks if the user is interacting with the slider
+    let currentSliderValue = 0;
 
-    timeSlider.max = totalSeconds; // Slider's range matches the total seconds in the day
+    function startAnimationLoop() {
+      animationStartTime = null;
+      frameId = requestAnimationFrame(animate);
+    }
 
-    // Pause animation when the user starts interacting with the slider
-    timeSlider.addEventListener('mousedown', () => {
-      isUserInteracting = true;
-      clearInterval(animationInterval);
+    function animate(timestamp) {
+      if (!animationStartTime) animationStartTime = timestamp;
+      const elapsedTime = timestamp - animationStartTime;
+      currentSliderValue = Math.floor(elapsedTime / 1000);
+
+      if (currentSliderValue <= totalSeconds) {
+        timeSlider.value = currentSliderValue;
+        const currentTimestamp = startTime + currentSliderValue * 1000;
+        timeLabel.textContent = new Date(currentTimestamp).toISOString();
+        updateInterpolatedPoints(currentTimestamp);
+
+        frameId = requestAnimationFrame(animate);
+      } else {
+        stopAnimation();
+      }
+    }
+
+    function stopAnimation() {
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = null;
+      isPlaying = false;
+      playButton.textContent = 'Play';
+    }
+
+    playButton.addEventListener('click', () => {
+      if (isPlaying) {
+        stopAnimation();
+      } else {
+        startAnimationLoop();
+        playButton.textContent = 'Pause';
+        isPlaying = true;
+      }
     });
 
-    // Update map and timestamp while the slider is being moved
     timeSlider.addEventListener('input', () => {
+      stopAnimation();
       const sliderValue = parseInt(timeSlider.value, 10);
-      const currentTimestamp = startTime + sliderValue * 1000; // Convert seconds to milliseconds
+      const currentTimestamp = startTime + sliderValue * 1000;
       timeLabel.textContent = new Date(currentTimestamp).toISOString();
       updateInterpolatedPoints(currentTimestamp);
     });
 
-    // Resume animation when the user finishes interacting with the slider
-    timeSlider.addEventListener('mouseup', () => {
-      isUserInteracting = false;
-      if (isPlaying) {
-        startAnimation(); // Resume animation
-      }
-    });
-
-    playButton.addEventListener('click', () => {
-      if (isPlaying) {
-        clearInterval(animationInterval);
-        playButton.textContent = 'Play';
-      } else {
-        startAnimation();
-        playButton.textContent = 'Pause';
-      }
-      isPlaying = !isPlaying;
-    });
-
-    function startAnimation() {
-      animationInterval = setInterval(() => {
-        if (!isUserInteracting && currentSliderValue < totalSeconds) {
-          currentSliderValue += 1; // Increment by 1 second
-          timeSlider.value = currentSliderValue;
-          const currentTimestamp = startTime + currentSliderValue * 10000; // Convert to milliseconds
-          timeLabel.textContent = new Date(currentTimestamp).toISOString();
-          updateInterpolatedPoints(currentTimestamp);
-        } else if (currentSliderValue >= totalSeconds) {
-          clearInterval(animationInterval);
-          playButton.textContent = 'Play';
-          isPlaying = false;
-        }
-      }, 10); // Update every 1 second
-    }
-
     map.on('load', () => {
-      // Add the vector source
       map.addSource('line-data', {
         type: 'vector',
         url: 'mapbox://gchisholm97.5urz7kmk',
       });
 
-      // Add the line layer (hidden)
-      map.addLayer({
-        id: 'line-layer',
-        type: 'line',
-        source: 'line-data',
-        'source-layer': 'new_lines-886q4q',
-        paint: {
-          'line-opacity': 0
-        }
-      });
-
-      // Add the interpolated-points source for the heatmap
       map.addSource('interpolated-points', {
         type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: [],
-        },
+        data: { type: 'FeatureCollection', features: [] },
       });
 
-      // Add the heatmap layer
       map.addLayer({
         id: 'heatmap-layer',
         type: 'heatmap',
@@ -179,14 +160,6 @@
         },
       });
 
-      map.on('data', function (e) {
-        if (e.sourceId === 'line-data' && e.isSourceLoaded) {
-          console.log('Vector tiles have finished loading.');
-          updateInterpolatedPoints(startTime);
-        }
-      });
-
-      // Trigger the initial update after loading
       updateInterpolatedPoints(startTime);
     });
 
@@ -195,10 +168,7 @@
         sourceLayer: 'new_lines-886q4q',
       });
 
-      if (!features || features.length === 0) {
-        console.error('No features found in the current viewport.');
-        return;
-      }
+      if (!features || features.length === 0) return;
 
       const interpolatedPoints = features
         .map((feature) => {
@@ -208,28 +178,22 @@
           const featureEndTime = new Date(end_time).getTime();
 
           if (targetTimestamp >= featureStartTime && targetTimestamp <= featureEndTime) {
-            const timeRatio =
-              (targetTimestamp - featureStartTime) /
-              (featureEndTime - featureStartTime);
-
+            const timeRatio = (targetTimestamp - featureStartTime) / (featureEndTime - featureStartTime);
             const line = { type: 'Feature', geometry: feature.geometry };
             const lineLength = turf.length(line, { units: 'kilometers' });
-
             const distance = timeRatio * lineLength;
-
             return turf.along(line, distance, { units: 'kilometers' });
           }
         })
         .filter(Boolean);
 
-      // Update the interpolated points source, which is used by the heatmap layer
       map.getSource('interpolated-points').setData({
         type: 'FeatureCollection',
         features: interpolatedPoints,
       });
     }
-
   </script>
+
 </body>
 
 </html>
