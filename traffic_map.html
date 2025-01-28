@@ -88,12 +88,16 @@
 
     <div id="map"></div>
     <div id="console">
-        <h1>Rental Bicycle Traffic in Chicago</h1>
+        <h1>Single-Day Bicycle Traffic Density</h1>
         <p>
-            Data:
-            <a href="https://divvybikes.com/system-data">Divvy rental bicycle
-                traffic density</a>
-            in Chicago, July 4 2024
+            This map visualizes the rental bicycle traffic in Chicago, IL on July 4th, 2024. Using
+            start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>, 
+            assumed individual ride route geometries were derived using Mapbox's Directions API. By interpolating 
+            points every 100 meters, and then distributing each ride's duration across those points, each ride's 
+            temporal position was approximated.
+
+            Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes 
+            to soak up the sun on the 4th of July, 2024.
         </p>
     </div>
     <div id="controls">
