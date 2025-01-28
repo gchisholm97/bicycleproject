@@ -83,6 +83,16 @@
             gap: 10px;
         }
 
+        #fullscreen {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+
         #controls button,
         #controls input[type="range"] {
             border: none;
@@ -114,20 +124,24 @@
 <body>
 
     <div id="map"></div>
+    <div id="fullscreen">Fullscreen</div>
     <div id="console" class="collapsed">
         <button id="toggle-console">▼</button>
         <h1>Bicycle Traffic Density in Chicago, IL</h1>
         <p>
             This map visualizes the rental bicycle traffic in Chicago, IL on July 4th, 2024. Using
             start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>,
-            assumed individual ride route geometries were derived using <a href="https://docs.mapbox.com/api/navigation/directions/">Mapbox's Directions API</a>. 
-            By interpolating points every 100 meters, and then distributing each ride's duration across those points, each ride's
+            assumed individual ride route geometries were derived using <a
+                href="https://docs.mapbox.com/api/navigation/directions/">Mapbox's Directions API</a>.
+            By interpolating points every 100 meters, and then distributing each ride's duration across those points,
+            each ride's
             temporal position was approximated. <br /><br />
 
             Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes
             to soak up the sun on the 4th of July, 2024. <br /><br />
 
-            <strong>Concept and development: </strong><a href="https://www.linkedin.com/in/gavchisholm/">Gavin Chisholm</a> with the assistance of <a href="https://chatgpt.com/">Chat GPT</a>.<br />
+            <strong>Concept and development: </strong><a href="https://www.linkedin.com/in/gavchisholm/">Gavin
+                Chisholm</a> with the assistance of <a href="https://chatgpt.com/">Chat GPT</a>.<br />
             <strong>Contact: </strong>chisholm.gavinl@gmail.com
         </p>
     </div>
@@ -291,6 +305,32 @@
                     consoleDiv.classList.remove('expanded');
                     consoleDiv.classList.add('collapsed');
                     toggleButton.textContent = '▼'; // Change button to "expand" icon
+                }
+            });
+
+            // JavaScript for toggling fullscreen
+            document.getElementById('fullscreen').addEventListener('click', () => {
+                const mapElement = document.getElementById('map');
+
+                // Check if the browser supports fullscreen
+                if (!document.fullscreenElement) {
+                    // Request fullscreen on the map element
+                    if (mapElement.requestFullscreen) {
+                        mapElement.requestFullscreen();
+                    } else if (mapElement.webkitRequestFullscreen) {
+                        mapElement.webkitRequestFullscreen(); // Safari
+                    } else if (mapElement.msRequestFullscreen) {
+                        mapElement.msRequestFullscreen(); // IE/Edge
+                    }
+                } else {
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen(); // Safari
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen(); // IE/Edge
+                    }
                 }
             });
 
