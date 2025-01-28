@@ -131,6 +131,17 @@
         url: 'mapbox://gchisholm97.5urz7kmk',
       });
 
+      // Add the line layer (hidden)
+      map.addLayer({
+        id: 'line-layer',
+        type: 'line',
+        source: 'line-data',
+        'source-layer': 'new_lines-886q4q',
+        paint: {
+          'line-opacity': 0
+        }
+      });
+
       // Add the interpolated-points source for the heatmap
       map.addSource('interpolated-points', {
         type: 'geojson',
