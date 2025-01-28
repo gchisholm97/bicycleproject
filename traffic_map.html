@@ -37,10 +37,37 @@
 
         #console {
             position: absolute;
-            width: 240px;
+            width: 500px;
             margin: 10px;
             padding: 10px 20px;
             background: rgba(255, 255, 255, 0.8);
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        #console.collapsed {
+            max-height: 50px;
+            /* Show only the h1 and toggle button */
+        }
+
+        #console.expanded {
+            max-height: 300px;
+            /* Adjust as needed to fit full content */
+        }
+
+        /* Toggle Button */
+        #toggle-console {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #toggle-console:hover {
+            color: #2dc4b2;
         }
 
         #controls {
@@ -91,12 +118,12 @@
         <h1>Single-Day Bicycle Traffic Density</h1>
         <p>
             This map visualizes the rental bicycle traffic in Chicago, IL on July 4th, 2024. Using
-            start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>, 
-            assumed individual ride route geometries were derived using Mapbox's Directions API. By interpolating 
-            points every 100 meters, and then distributing each ride's duration across those points, each ride's 
+            start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>,
+            assumed individual ride route geometries were derived using Mapbox's Directions API. By interpolating
+            points every 100 meters, and then distributing each ride's duration across those points, each ride's
             temporal position was approximated.
 
-            Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes 
+            Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes
             to soak up the sun on the 4th of July, 2024.
         </p>
     </div>
@@ -246,6 +273,23 @@
                 currentWindowIndex = parseInt(e.target.value, 10);
                 updateHeatmap();
             });
+
+            // JavaScript to toggle console state
+            document.getElementById('toggle-console').addEventListener('click', () => {
+                const consoleDiv = document.getElementById('console');
+                const toggleButton = document.getElementById('toggle-console');
+
+                if (consoleDiv.classList.contains('collapsed')) {
+                    consoleDiv.classList.remove('collapsed');
+                    consoleDiv.classList.add('expanded');
+                    toggleButton.textContent = '▲'; // Change button to "collapse" icon
+                } else {
+                    consoleDiv.classList.remove('expanded');
+                    consoleDiv.classList.add('collapsed');
+                    toggleButton.textContent = '▼'; // Change button to "expand" icon
+                }
+            });
+
 
             // Attach event listeners to controls
             document.getElementById('play').addEventListener('click', playAnimation);
