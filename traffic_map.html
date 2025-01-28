@@ -98,9 +98,8 @@
         <button id="pause">Pause</button>
         <button id="reset">Reset</button>
         <br />
-        <label for="time-slider">Time:</label>
         <input type="range" id="time-slider" min="0" step="1" value="0">
-        <span id="time-display">00:00:00</span>
+        <span id="time-display">Time: 00:00:00</span>
     </div>
 
     <script>
@@ -188,7 +187,7 @@
                 ]);
 
                 // Update the time display
-                document.getElementById('time-display').textContent = `${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
+                document.getElementById('time-display').textContent = `"Time: "${windowStart.getHours().toString().padStart(2, '0')}:${windowStart.getMinutes().toString().padStart(2, '0')}:${windowStart.getSeconds().toString().padStart(2, '0')}`;
 
                 // Update the slider position
                 document.getElementById('time-slider').value = currentWindowIndex;
