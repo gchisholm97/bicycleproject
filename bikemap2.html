@@ -83,7 +83,7 @@
     function animate(timestamp) {
       if (!animationStartTime) animationStartTime = timestamp;
       const elapsedTime = timestamp - animationStartTime;
-      currentSliderValue = Math.floor(elapsedTime / 1000);
+      currentSliderValue = Math.floor(elapsedTime / 250);
 
       if (currentSliderValue <= totalSeconds) {
         timeSlider.value = currentSliderValue;
