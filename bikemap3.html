@@ -87,6 +87,9 @@
         let isPlaying = false;
         let currentSliderValue = 0;
 
+        let lastUpdate = 0;
+        const updateInterval = 100; // Throttle updates to every 100 ms
+
         function animate() {
             currentSliderValue++;
             if (currentSliderValue <= totalSeconds) {
@@ -104,6 +107,42 @@
             frameId = null;
             isPlaying = false;
             playButton.textContent = '▶';
+        }
+
+        function updateInterpolatedPoints(targetTimestamp) {
+            const now = Date.now();
+            if (now - lastUpdate < updateInterval) return;
+            lastUpdate = now;
+
+            const features = map.querySourceFeatures('line-data', { sourceLayer: 'new_lines-886q4q' });
+            if (!features) return;
+
+            const chunkSize = 100;
+            let index = 0;
+
+            function processChunk() {
+                const chunk = features.slice(index, index + chunkSize);
+                const interpolatedPoints = chunk.map(feature => {
+                    const { start_time, end_time } = feature.properties;
+                    const start = new Date(start_time).getTime();
+                    const end = new Date(end_time).getTime();
+
+                    if (targetTimestamp >= start && targetTimestamp <= end) {
+                        const timeRatio = (targetTimestamp - start) / (end - start);
+                        const line = { type: 'Feature', geometry: feature.geometry };
+                        return turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                    }
+                }).filter(Boolean);
+
+                index += chunkSize;
+                if (index < features.length) {
+                    requestAnimationFrame(processChunk);
+                } else {
+                    map.getSource('interpolated-points').setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                }
+            }
+
+            processChunk();
         }
 
         playButton.addEventListener('click', () => {
@@ -176,25 +215,6 @@
                 },
             });
         });
-
-        function updateInterpolatedPoints(targetTimestamp) {
-            const features = map.querySourceFeatures('line-data', { sourceLayer: 'new_lines-886q4q' });
-            if (!features) return;
-
-            const interpolatedPoints = features.map(feature => {
-                const { start_time, end_time } = feature.properties;
-                const start = new Date(start_time).getTime();
-                const end = new Date(end_time).getTime();
-
-                if (targetTimestamp >= start && targetTimestamp <= end) {
-                    const timeRatio = (targetTimestamp - start) / (end - start);
-                    const line = { type: 'Feature', geometry: feature.geometry };
-                    return turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
-                }
-            }).filter(Boolean);
-
-            map.getSource('interpolated-points').setData({ type: 'FeatureCollection', features: interpolatedPoints });
-        }
     </script>
 </body>
 
