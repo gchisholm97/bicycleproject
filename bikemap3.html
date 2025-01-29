@@ -140,6 +140,16 @@
             });
 
             map.addLayer({
+                id: 'bike-routes',
+                type: 'line',
+                source: 'line-data',
+                'source-layer': 'new_lines-886q4q',
+                paint: {
+                    'line-opacity': 0
+                },
+            });
+
+            map.addLayer({
                 id: 'heatmap-layer',
                 type: 'heatmap',
                 source: 'interpolated-points',
