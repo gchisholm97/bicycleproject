@@ -44,7 +44,7 @@
             gap: 10px;
         }
     </style>
-    </head>
+</head>
 
 <body>
     <div id="map"></div>
@@ -63,14 +63,14 @@
         // ... (your map initialization and other setup) ...
         mapboxgl.accessToken = 'pk.eyJ1IjoiZ2NoaXNob2xtOTciLCJhIjoiY200bG8wZGVxMDNmNDJpcTZlZnRiNmhyaCJ9.q3Z-B7c7danrOXXe2lPUfw';
 
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
-    center: [-87.627454, 41.903424],
-    zoom: 15.47,
-    pitch: 73.0,
-    bearing: -60.92,
-});
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/gchisholm97/cm5wrequm007301qv1dbtck62',
+            center: [-87.627454, 41.903424],
+            zoom: 15.47,
+            pitch: 73.0,
+            bearing: -60.92,
+        });
 
         map.on('load', () => {
             // ... (your map source and layer for bike routes) ...
@@ -150,16 +150,34 @@ const map = new mapboxgl.Map({
 
                 const interpolatedPoints = []; // Array to hold the calculated points
 
-                for (const feature of features) { // Use a regular loop for better performance with large datasets
+                for (const feature of features) {
                     const { start_time, end_time } = feature.properties;
                     const start = new Date(start_time).getTime();
                     const end = new Date(end_time).getTime();
 
                     if (targetTimestamp >= start && targetTimestamp <= end) {
                         const timeRatio = (targetTimestamp - start) / (end - start);
-                        const line = { type: 'Feature', geometry: feature.geometry };
-                        const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
-                        interpolatedPoints.push(point);
+                        const geometry = feature.geometry; // Get the geometry directly
+
+                        //  Simplified for MultiLineStrings ONLY:
+                        for (const lineString of geometry.coordinates) {
+                            const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
+                            const segmentLength = turf.length(line);
+                            const alongDistance = timeRatio * turf.length(geometry); // Calculate distance based on total length
+                            let cumulativeDistance = 0;
+
+                            for (const ls of geometry.coordinates) {
+                                const l = { type: 'Feature', geometry: { type: 'LineString', coordinates: ls } };
+                                const lsLength = turf.length(l);
+                                if (cumulativeDistance + lsLength >= alongDistance) {
+                                    const localRatio = (alongDistance - cumulativeDistance) / lsLength;
+                                    const point = turf.along(l, localRatio * lsLength, { units: 'kilometers' });
+                                    interpolatedPoints.push(point);
+                                    break; // Found the segment
+                                }
+                                cumulativeDistance += lsLength;
+                            }
+                        }
                     }
                 }
 
@@ -167,7 +185,7 @@ const map = new mapboxgl.Map({
                 // *** KEY CHANGE: Update the existing source data ***
                 const source = map.getSource('interpolated-points');
                 if (source) {
-                   source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                    source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
                 } else {
                     console.error("Source 'interpolated-points' not found!");
                 }
@@ -192,7 +210,7 @@ const map = new mapboxgl.Map({
                 isPlaying = false;
                 playButton.textContent = '▶';
             }
-            
+
             playButton.addEventListener('click', () => {
                 if (!isPlaying) {
                     frameId = requestAnimationFrame(animate);
