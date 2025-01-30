@@ -195,9 +195,10 @@
             function animate() {
                 currentSliderValue++;
                 if (currentSliderValue <= totalSeconds) {
-                    timeSlider.value = currentSliderValue;
-                    updateInterpolatedPoints(startTime + currentSliderValue * 1000);
-                    timeDisplay.textContent = new Date(startTime + currentSliderValue * 1000).toISOString();
+                    timeSlider.value = currentSliderValue;  // Update slider
+                    const targetTimestamp = startTime + currentSliderValue * 1000;
+                    updateInterpolatedPoints(targetTimestamp);
+                    updateTimeDisplay(targetTimestamp); // Update display *here*
                     frameId = requestAnimationFrame(animate);
                 } else {
                     stopAnimation();
@@ -209,6 +210,14 @@
                 frameId = null;
                 isPlaying = false;
                 playButton.textContent = '▶';
+            }
+
+            function updateTimeDisplay(timestamp) { // Separate function to update the display
+                const date = new Date(timestamp);
+                const hours = date.getUTCHours().toString().padStart(2, '0');
+                const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+                timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
             }
 
             playButton.addEventListener('click', () => {
@@ -224,14 +233,21 @@
                 stopAnimation();
                 currentSliderValue = 0;
                 timeSlider.value = 0;
-                updateInterpolatedPoints(startTime);
+                const targetTimestamp = startTime; // Reset to start time
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update time display
             });
 
             timeSlider.addEventListener('input', () => {
                 stopAnimation();
                 currentSliderValue = parseInt(timeSlider.value, 10);
-                updateInterpolatedPoints(startTime + currentSliderValue * 1000);
+                const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update the display *immediately*
             });
+
+            // Initial update of the time display
+            updateTimeDisplay(startTime);
 
         });
     </script>
