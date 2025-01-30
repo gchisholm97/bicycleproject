@@ -23,6 +23,22 @@
             width: 100%;
         }
 
+        h1 {
+            font-size: 20px;
+            line-height: 30px;
+        }
+
+        h2 {
+            font-size: 14px;
+            line-height: 20px;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #2dc4b2;
+        }
+
         #console {
             position: absolute;
             width: 500px;
@@ -33,6 +49,31 @@
             transition: max-height 0.3s ease;
         }
 
+        #console.collapsed {
+            max-height: 50px;
+            /* Show only the h1 and toggle button */
+        }
+
+        #console.expanded {
+            max-height: fit-content;
+            /* Adjust as needed to fit full content */
+        }
+
+        /* Toggle Button */
+        #toggle-console {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #toggle-console:hover {
+            color: #76797a;
+        }
+
         #controls {
             position: absolute;
             bottom: 10px;
@@ -40,22 +81,81 @@
             background: rgba(255, 255, 255, 0.8);
             padding: 10px;
             border-radius: 5px;
+            font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: row;
             gap: 10px;
+        }
+
+        #fullscreen {
+            position: absolute;
+            cursor: pointer;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+
+        #controls button,
+        #controls input[type="range"] {
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            background-color: #adb2b3;
+            color: white;
+            font-size: 14px;
+        }
+
+        #controls button:hover {
+            background-color: #76797a;
+        }
+
+        #controls button:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+
+        #controls input[type="range"] {
+            width: 100%;
         }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
+    <div id="fullscreen">Fullscreen</div>
     <div id="console" class="collapsed">
         <button id="toggle-console">▼</button>
         <h1>Bicycle Traffic Density in Chicago, IL</h1>
+        <p>
+            This map visualizes the rental bicycle traffic in Chicago, IL on July 4th, 2024. Using
+            start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>,
+            assumed individual ride route geometries were derived using <a
+                href="https://docs.mapbox.com/api/navigation/directions/">Mapbox's Directions API</a>.
+            By interpolating points every 100 meters, and then distributing each ride's duration across those points,
+            each ride's
+            temporal position was approximated. <br /><br />
+
+            Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes
+            to soak up the sun on the 4th of July, 2024. <br /><br />
+
+            <strong>Concept and development: </strong><a href="https://www.linkedin.com/in/gavchisholm/">Gavin
+                Chisholm</a> with the assistance of <a href="https://chatgpt.com/">Chat GPT</a>.<br />
+            <strong>Contact: </strong>chisholm.gavinl@gmail.com
+        </p>
     </div>
     <div id="controls">
-        <button id="reset">⏮</button>
-        <button id="play">▶</button>
-        <button id="pause">⏸</button>
+        <button id="reset"><span class="material-icons">
+                skip_previous
+            </span></button>
+        <button id="play"><span class="material-icons">
+                play_arrow
+            </span></button>
         <input type="range" id="time-slider" min="0" step="1" value="0">
         <span id="time-display">Time: 00:00:00</span>
     </div>
@@ -125,7 +225,6 @@
             const timeSlider = document.getElementById('time-slider');
             const timeDisplay = document.getElementById('time-display');
             const playButton = document.getElementById('play');
-            const pauseButton = document.getElementById('pause');
             const resetButton = document.getElementById('reset');
 
             const startTime = new Date('2024-07-04T00:00:00Z').getTime();
@@ -150,106 +249,151 @@
 
                 const interpolatedPoints = []; // Array to hold the calculated points
 
-                        //  Simplified for MultiLineStrings ONLY:
-                        for (const feature of features) {
-                            const { start_time, end_time } = feature.properties;
-                            const start = new Date(start_time).getTime();
-                            const end = new Date(end_time).getTime();
+                //  Simplified for MultiLineStrings ONLY:
+                for (const feature of features) {
+                    const { start_time, end_time } = feature.properties;
+                    const start = new Date(start_time).getTime();
+                    const end = new Date(end_time).getTime();
 
-                            if (targetTimestamp >= start && targetTimestamp <= end) {
-                                const timeRatio = (targetTimestamp - start) / (end - start);
-                                const geometry = feature.geometry; // Get the geometry directly
+                    if (targetTimestamp >= start && targetTimestamp <= end) {
+                        const timeRatio = (targetTimestamp - start) / (end - start);
+                        const geometry = feature.geometry; // Get the geometry directly
 
-                                if (geometry.type === 'LineString') { // Handle LineStrings directly
-                                    const line = { type: 'Feature', geometry: geometry };
-                                    const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                        if (geometry.type === 'LineString') { // Handle LineStrings directly
+                            const line = { type: 'Feature', geometry: geometry };
+                            const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                            interpolatedPoints.push(point);
+                        } else if (geometry.type === 'MultiLineString') {  // Handle MultiLineStrings
+                            for (const lineString of geometry.coordinates) { // Iterate through each LineString
+                                const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
+                                const segmentLength = turf.length(line);
+                                const alongDistance = timeRatio * segmentLength
+                                if (alongDistance <= segmentLength) { // Check to avoid turf.along errors
+                                    const point = turf.along(line, alongDistance, { units: 'kilometers' });
                                     interpolatedPoints.push(point);
-                                } else if (geometry.type === 'MultiLineString') {  // Handle MultiLineStrings
-                                    for (const lineString of geometry.coordinates) { // Iterate through each LineString
-                                        const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
-                                        const segmentLength = turf.length(line);
-                                        const alongDistance = timeRatio * segmentLength
-                                        if (alongDistance <= segmentLength) { // Check to avoid turf.along errors
-                                            const point = turf.along(line, alongDistance, { units: 'kilometers' });
-                                            interpolatedPoints.push(point);
-                                            break; // Stop after finding the point on the first segment
-                                        } else {
-                                            timeRatio -= segmentLength / turf.length(line);
-                                        }
-                                    }
+                                    break; // Stop after finding the point on the first segment
+                                } else {
+                                    timeRatio -= segmentLength / turf.length(line);
                                 }
                             }
                         }
-
-
-                    // *** KEY CHANGE: Update the existing source data ***
-                    const source = map.getSource('interpolated-points');
-                    if (source) {
-                        source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
-                    } else {
-                        console.error("Source 'interpolated-points' not found!");
                     }
                 }
 
-                // ... (rest of your event listeners and animation logic) ...
-                function animate() {
-                    currentSliderValue++;
-                    if (currentSliderValue <= totalSeconds) {
-                        timeSlider.value = currentSliderValue;  // Update slider
-                        const targetTimestamp = startTime + currentSliderValue * 1000;
-                        updateInterpolatedPoints(targetTimestamp);
-                        updateTimeDisplay(targetTimestamp); // Update display *here*
-                        frameId = requestAnimationFrame(animate);
-                    } else {
-                        stopAnimation();
-                    }
+
+                // *** KEY CHANGE: Update the existing source data ***
+                const source = map.getSource('interpolated-points');
+                if (source) {
+                    source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                } else {
+                    console.error("Source 'interpolated-points' not found!");
                 }
+            }
 
-                function stopAnimation() {
-                    if (frameId) cancelAnimationFrame(frameId);
-                    frameId = null;
-                    isPlaying = false;
-                    playButton.textContent = '▶';
-                }
-
-                function updateTimeDisplay(timestamp) { // Separate function to update the display
-                    const date = new Date(timestamp);
-                    const hours = date.getUTCHours().toString().padStart(2, '0');
-                    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-                    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-                    timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
-                }
-
-                playButton.addEventListener('click', () => {
-                    if (!isPlaying) {
-                        frameId = requestAnimationFrame(animate);
-                        playButton.textContent = '⏸';
-                        isPlaying = true;
-                    }
-                });
-
-                pauseButton.addEventListener('click', stopAnimation);
-                resetButton.addEventListener('click', () => {
-                    stopAnimation();
-                    currentSliderValue = 0;
-                    timeSlider.value = 0;
-                    const targetTimestamp = startTime; // Reset to start time
+            // ... (rest of your event listeners and animation logic) ...
+            function animate() {
+                currentSliderValue++;
+                if (currentSliderValue <= totalSeconds) {
+                    timeSlider.value = currentSliderValue;  // Update slider
+                    const targetTimestamp = startTime + currentSliderValue * 1000;
                     updateInterpolatedPoints(targetTimestamp);
-                    updateTimeDisplay(targetTimestamp); // Update time display
-                });
-
-                timeSlider.addEventListener('input', () => {
+                    updateTimeDisplay(targetTimestamp); // Update display *here*
+                    frameId = requestAnimationFrame(animate);
+                } else {
                     stopAnimation();
-                    currentSliderValue = parseInt(timeSlider.value, 10);
-                    const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
-                    updateInterpolatedPoints(targetTimestamp);
-                    updateTimeDisplay(targetTimestamp); // Update the display *immediately*
-                });
+                }
+            }
 
-                // Initial update of the time display
-                updateTimeDisplay(startTime);
+            function stopAnimation() {
+                if (frameId) cancelAnimationFrame(frameId);
+                frameId = null;
+                isPlaying = false;
+                playButton.textContent = '▶';
+            }
 
+            function updateTimeDisplay(timestamp) { // Separate function to update the display
+                const date = new Date(timestamp);
+                const hours = date.getUTCHours().toString().padStart(2, '0');
+                const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+                timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+
+            playButton.addEventListener('click', () => {
+                if (!isPlaying) {
+                    frameId = requestAnimationFrame(animate);
+                    playButton.textContent = 'pause'; // Use "pause" text for the icon
+                    playButton.style.fontFamily = 'Material Icons'; // Ensure the font is applied
+                    playButton.style.fontSize = '14px';
+                    isPlaying = true;
+                } else {
+                    stopAnimation();
+                }
             });
+
+            resetButton.addEventListener('click', () => {
+                stopAnimation();
+                currentSliderValue = 0;
+                timeSlider.value = 0;
+                const targetTimestamp = startTime; // Reset to start time
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update time display
+            });
+
+            timeSlider.addEventListener('input', () => {
+                stopAnimation();
+                currentSliderValue = parseInt(timeSlider.value, 10);
+                const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update the display *immediately*
+            });
+
+            // Initial update of the time display
+            updateTimeDisplay(startTime);
+
+            // JavaScript to toggle console state
+            document.getElementById('toggle-console').addEventListener('click', () => {
+                const consoleDiv = document.getElementById('console');
+                const toggleButton = document.getElementById('toggle-console');
+
+                if (consoleDiv.classList.contains('collapsed')) {
+                    consoleDiv.classList.remove('collapsed');
+                    consoleDiv.classList.add('expanded');
+                    toggleButton.textContent = '▲'; // Change button to "collapse" icon
+                } else {
+                    consoleDiv.classList.remove('expanded');
+                    consoleDiv.classList.add('collapsed');
+                    toggleButton.textContent = '▼'; // Change button to "expand" icon
+                }
+            });
+
+            // JavaScript for toggling fullscreen
+            document.getElementById('fullscreen').addEventListener('click', () => {
+                const mapElement = document.getElementById('map');
+
+                // Check if the browser supports fullscreen
+                if (!document.fullscreenElement) {
+                    // Request fullscreen on the map element
+                    if (mapElement.requestFullscreen) {
+                        mapElement.requestFullscreen();
+                    } else if (mapElement.webkitRequestFullscreen) {
+                        mapElement.webkitRequestFullscreen(); // Safari
+                    } else if (mapElement.msRequestFullscreen) {
+                        mapElement.msRequestFullscreen(); // IE/Edge
+                    }
+                } else {
+                    // Exit fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen(); // Safari
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen(); // IE/Edge
+                    }
+                }
+            });
+
+        });
     </script>
 </body>
 
