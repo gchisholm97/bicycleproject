@@ -78,11 +78,6 @@
                 url: 'mapbox://gchisholm97.5urz7kmk',
             });
 
-            map.addSource('interpolated-points', {
-                type: 'geojson',
-                data: { type: 'FeatureCollection', features: [] },
-            });
-
             map.addLayer({
                 id: 'bike-routes',
                 type: 'line',
@@ -91,6 +86,11 @@
                 paint: {
                     'line-opacity': 0
                 },
+            });
+
+            map.addSource('interpolated-points', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] },
             });
 
             map.addLayer({
