@@ -323,16 +323,6 @@
                 if (!isPlaying) {
                     frameId = requestAnimationFrame(animate);
                     playButton.textContent = 'pause'; // Use "pause" text for the icon
-                    playButton.style.fontFamily = 'Material Icons'; // Ensure the font is applied
-                    playButton.style.border = 'none';
-                    playButton.style.padding = '8px 12px';
-                    playButton.style.cursor = 'pointer';
-                    playButton.style.height = '50px';
-                    playButton.style.width = '50px';
-                    playButton.style.borderRadius = '50%';
-                    playButton.style.backgroundColor = '#adb2b3';
-                    playButton.style.color = 'white';
-                    playButton.style.fontSize = '14px';
                     isPlaying = true;
                 } else {
                     stopAnimation();
