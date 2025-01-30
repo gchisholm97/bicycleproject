@@ -72,101 +72,6 @@
             bearing: -60.92,
         });
 
-        const timeSlider = document.getElementById('time-slider');
-        const timeDisplay = document.getElementById('time-display');
-        const playButton = document.getElementById('play');
-        const pauseButton = document.getElementById('pause');
-        const resetButton = document.getElementById('reset');
-
-        const startTime = new Date('2024-07-04T00:00:00Z').getTime();
-        const endTime = new Date('2024-07-04T23:59:59Z').getTime();
-        const totalSeconds = (endTime - startTime) / 1000;
-
-        timeSlider.max = totalSeconds;
-        let frameId = null;
-        let isPlaying = false;
-        let currentSliderValue = 0;
-
-        let lastUpdate = 0;
-        const updateInterval = 100; // Throttle updates to every 100 ms
-
-        function animate() {
-            currentSliderValue++;
-            if (currentSliderValue <= totalSeconds) {
-                timeSlider.value = currentSliderValue;
-                updateInterpolatedPoints(startTime + currentSliderValue * 1000);
-                timeDisplay.textContent = new Date(startTime + currentSliderValue * 1000).toISOString();
-                frameId = requestAnimationFrame(animate);
-            } else {
-                stopAnimation();
-            }
-        }
-
-        function stopAnimation() {
-            if (frameId) cancelAnimationFrame(frameId);
-            frameId = null;
-            isPlaying = false;
-            playButton.textContent = '▶';
-        }
-
-        function updateInterpolatedPoints(targetTimestamp) {
-            const now = Date.now();
-            if (now - lastUpdate < updateInterval) return;
-            lastUpdate = now;
-
-            const features = map.querySourceFeatures('line-data', { sourceLayer: 'new_lines-886q4q' });
-            if (!features) return;
-
-            const chunkSize = 100;
-            let index = 0;
-
-            function processChunk() {
-                const chunk = features.slice(index, index + chunkSize);
-                const interpolatedPoints = chunk.map(feature => {
-                    const { start_time, end_time } = feature.properties;
-                    const start = new Date(start_time).getTime();
-                    const end = new Date(end_time).getTime();
-
-                    if (targetTimestamp >= start && targetTimestamp <= end) {
-                        const timeRatio = (targetTimestamp - start) / (end - start);
-                        const line = { type: 'Feature', geometry: feature.geometry };
-                        return turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
-                    }
-                }).filter(Boolean);
-
-                index += chunkSize;
-                if (index < features.length) {
-                    requestAnimationFrame(processChunk);
-                } else {
-                    map.getSource('interpolated-points').setData({ type: 'FeatureCollection', features: interpolatedPoints });
-                }
-            }
-
-            processChunk();
-        }
-
-        playButton.addEventListener('click', () => {
-            if (!isPlaying) {
-                frameId = requestAnimationFrame(animate);
-                playButton.textContent = '⏸';
-                isPlaying = true;
-            }
-        });
-
-        pauseButton.addEventListener('click', stopAnimation);
-        resetButton.addEventListener('click', () => {
-            stopAnimation();
-            currentSliderValue = 0;
-            timeSlider.value = 0;
-            updateInterpolatedPoints(startTime);
-        });
-
-        timeSlider.addEventListener('input', () => {
-            stopAnimation();
-            currentSliderValue = parseInt(timeSlider.value, 10);
-            updateInterpolatedPoints(startTime + currentSliderValue * 1000);
-        });
-
         map.on('load', () => {
             map.addSource('line-data', {
                 type: 'vector',
@@ -213,6 +118,101 @@
                         "red"
                     ],
                 },
+            });
+
+            const timeSlider = document.getElementById('time-slider');
+            const timeDisplay = document.getElementById('time-display');
+            const playButton = document.getElementById('play');
+            const pauseButton = document.getElementById('pause');
+            const resetButton = document.getElementById('reset');
+
+            const startTime = new Date('2024-07-04T00:00:00Z').getTime();
+            const endTime = new Date('2024-07-04T23:59:59Z').getTime();
+            const totalSeconds = (endTime - startTime) / 1000;
+
+            timeSlider.max = totalSeconds;
+            let frameId = null;
+            let isPlaying = false;
+            let currentSliderValue = 0;
+
+            let lastUpdate = 0;
+            const updateInterval = 100; // Throttle updates to every 100 ms
+
+            function animate() {
+                currentSliderValue++;
+                if (currentSliderValue <= totalSeconds) {
+                    timeSlider.value = currentSliderValue;
+                    updateInterpolatedPoints(startTime + currentSliderValue * 1000);
+                    timeDisplay.textContent = new Date(startTime + currentSliderValue * 1000).toISOString();
+                    frameId = requestAnimationFrame(animate);
+                } else {
+                    stopAnimation();
+                }
+            }
+
+            function stopAnimation() {
+                if (frameId) cancelAnimationFrame(frameId);
+                frameId = null;
+                isPlaying = false;
+                playButton.textContent = '▶';
+            }
+
+            function updateInterpolatedPoints(targetTimestamp) {
+                const now = Date.now();
+                if (now - lastUpdate < updateInterval) return;
+                lastUpdate = now;
+
+                const features = map.querySourceFeatures('line-data', { sourceLayer: 'new_lines-886q4q' });
+                if (!features) return;
+
+                const chunkSize = 100;
+                let index = 0;
+
+                function processChunk() {
+                    const chunk = features.slice(index, index + chunkSize);
+                    const interpolatedPoints = chunk.map(feature => {
+                        const { start_time, end_time } = feature.properties;
+                        const start = new Date(start_time).getTime();
+                        const end = new Date(end_time).getTime();
+
+                        if (targetTimestamp >= start && targetTimestamp <= end) {
+                            const timeRatio = (targetTimestamp - start) / (end - start);
+                            const line = { type: 'Feature', geometry: feature.geometry };
+                            return turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                        }
+                    }).filter(Boolean);
+
+                    index += chunkSize;
+                    if (index < features.length) {
+                        requestAnimationFrame(processChunk);
+                    } else {
+                        map.getSource('interpolated-points').setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                    }
+                }
+
+                processChunk();
+            }
+
+            playButton.addEventListener('click', () => {
+                if (!isPlaying) {
+                    frameId = requestAnimationFrame(animate);
+                    playButton.textContent = '⏸';
+                    isPlaying = true;
+                }
+            });
+
+            pauseButton.addEventListener('click', stopAnimation);
+            resetButton.addEventListener('click', () => {
+                stopAnimation();
+                currentSliderValue = 0;
+                timeSlider.value = 0;
+                updateInterpolatedPoints(startTime);
+            });
+
+            timeSlider.addEventListener('input', () => {
+                stopAnimation();
+                currentSliderValue = parseInt(timeSlider.value, 10);
+                updateInterpolatedPoints(startTime + currentSliderValue * 1000);
             });
         });
     </script>
