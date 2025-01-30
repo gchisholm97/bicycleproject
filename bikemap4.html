@@ -150,106 +150,106 @@
 
                 const interpolatedPoints = []; // Array to hold the calculated points
 
-                for (const feature of features) {
-                    const { start_time, end_time } = feature.properties;
-                    const start = new Date(start_time).getTime();
-                    const end = new Date(end_time).getTime();
-
-                    if (targetTimestamp >= start && targetTimestamp <= end) {
-                        const timeRatio = (targetTimestamp - start) / (end - start);
-                        const geometry = feature.geometry; // Get the geometry directly
-
                         //  Simplified for MultiLineStrings ONLY:
-                        for (const lineString of geometry.coordinates) {
-                            const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
-                            const segmentLength = turf.length(line);
-                            const alongDistance = timeRatio * turf.length(geometry); // Calculate distance based on total length
-                            let cumulativeDistance = 0;
+                        for (const feature of features) {
+                            const { start_time, end_time } = feature.properties;
+                            const start = new Date(start_time).getTime();
+                            const end = new Date(end_time).getTime();
 
-                            for (const ls of geometry.coordinates) {
-                                const l = { type: 'Feature', geometry: { type: 'LineString', coordinates: ls } };
-                                const lsLength = turf.length(l);
-                                if (cumulativeDistance + lsLength >= alongDistance) {
-                                    const localRatio = (alongDistance - cumulativeDistance) / lsLength;
-                                    const point = turf.along(l, localRatio * lsLength, { units: 'kilometers' });
+                            if (targetTimestamp >= start && targetTimestamp <= end) {
+                                const timeRatio = (targetTimestamp - start) / (end - start);
+                                const geometry = feature.geometry; // Get the geometry directly
+
+                                if (geometry.type === 'LineString') { // Handle LineStrings directly
+                                    const line = { type: 'Feature', geometry: geometry };
+                                    const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
                                     interpolatedPoints.push(point);
-                                    break; // Found the segment
+                                } else if (geometry.type === 'MultiLineString') {  // Handle MultiLineStrings
+                                    for (const lineString of geometry.coordinates) { // Iterate through each LineString
+                                        const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
+                                        const segmentLength = turf.length(line);
+                                        const alongDistance = timeRatio * segmentLength
+                                        if (alongDistance <= segmentLength) { // Check to avoid turf.along errors
+                                            const point = turf.along(line, alongDistance, { units: 'kilometers' });
+                                            interpolatedPoints.push(point);
+                                            break; // Stop after finding the point on the first segment
+                                        } else {
+                                            timeRatio -= segmentLength / turf.length(line);
+                                        }
+                                    }
                                 }
-                                cumulativeDistance += lsLength;
                             }
                         }
+
+
+                    // *** KEY CHANGE: Update the existing source data ***
+                    const source = map.getSource('interpolated-points');
+                    if (source) {
+                        source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                    } else {
+                        console.error("Source 'interpolated-points' not found!");
                     }
                 }
 
-
-                // *** KEY CHANGE: Update the existing source data ***
-                const source = map.getSource('interpolated-points');
-                if (source) {
-                    source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
-                } else {
-                    console.error("Source 'interpolated-points' not found!");
+                // ... (rest of your event listeners and animation logic) ...
+                function animate() {
+                    currentSliderValue++;
+                    if (currentSliderValue <= totalSeconds) {
+                        timeSlider.value = currentSliderValue;  // Update slider
+                        const targetTimestamp = startTime + currentSliderValue * 1000;
+                        updateInterpolatedPoints(targetTimestamp);
+                        updateTimeDisplay(targetTimestamp); // Update display *here*
+                        frameId = requestAnimationFrame(animate);
+                    } else {
+                        stopAnimation();
+                    }
                 }
-            }
 
-            // ... (rest of your event listeners and animation logic) ...
-            function animate() {
-                currentSliderValue++;
-                if (currentSliderValue <= totalSeconds) {
-                    timeSlider.value = currentSliderValue;  // Update slider
-                    const targetTimestamp = startTime + currentSliderValue * 1000;
-                    updateInterpolatedPoints(targetTimestamp);
-                    updateTimeDisplay(targetTimestamp); // Update display *here*
-                    frameId = requestAnimationFrame(animate);
-                } else {
+                function stopAnimation() {
+                    if (frameId) cancelAnimationFrame(frameId);
+                    frameId = null;
+                    isPlaying = false;
+                    playButton.textContent = '▶';
+                }
+
+                function updateTimeDisplay(timestamp) { // Separate function to update the display
+                    const date = new Date(timestamp);
+                    const hours = date.getUTCHours().toString().padStart(2, '0');
+                    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+                    timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+                }
+
+                playButton.addEventListener('click', () => {
+                    if (!isPlaying) {
+                        frameId = requestAnimationFrame(animate);
+                        playButton.textContent = '⏸';
+                        isPlaying = true;
+                    }
+                });
+
+                pauseButton.addEventListener('click', stopAnimation);
+                resetButton.addEventListener('click', () => {
                     stopAnimation();
-                }
-            }
+                    currentSliderValue = 0;
+                    timeSlider.value = 0;
+                    const targetTimestamp = startTime; // Reset to start time
+                    updateInterpolatedPoints(targetTimestamp);
+                    updateTimeDisplay(targetTimestamp); // Update time display
+                });
 
-            function stopAnimation() {
-                if (frameId) cancelAnimationFrame(frameId);
-                frameId = null;
-                isPlaying = false;
-                playButton.textContent = '▶';
-            }
+                timeSlider.addEventListener('input', () => {
+                    stopAnimation();
+                    currentSliderValue = parseInt(timeSlider.value, 10);
+                    const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
+                    updateInterpolatedPoints(targetTimestamp);
+                    updateTimeDisplay(targetTimestamp); // Update the display *immediately*
+                });
 
-            function updateTimeDisplay(timestamp) { // Separate function to update the display
-                const date = new Date(timestamp);
-                const hours = date.getUTCHours().toString().padStart(2, '0');
-                const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-                const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-                timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
-            }
+                // Initial update of the time display
+                updateTimeDisplay(startTime);
 
-            playButton.addEventListener('click', () => {
-                if (!isPlaying) {
-                    frameId = requestAnimationFrame(animate);
-                    playButton.textContent = '⏸';
-                    isPlaying = true;
-                }
             });
-
-            pauseButton.addEventListener('click', stopAnimation);
-            resetButton.addEventListener('click', () => {
-                stopAnimation();
-                currentSliderValue = 0;
-                timeSlider.value = 0;
-                const targetTimestamp = startTime; // Reset to start time
-                updateInterpolatedPoints(targetTimestamp);
-                updateTimeDisplay(targetTimestamp); // Update time display
-            });
-
-            timeSlider.addEventListener('input', () => {
-                stopAnimation();
-                currentSliderValue = parseInt(timeSlider.value, 10);
-                const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
-                updateInterpolatedPoints(targetTimestamp);
-                updateTimeDisplay(targetTimestamp); // Update the display *immediately*
-            });
-
-            // Initial update of the time display
-            updateTimeDisplay(startTime);
-
-        });
     </script>
 </body>
 
