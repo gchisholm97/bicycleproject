@@ -124,6 +124,11 @@
         #controls input[type="range"] {
             width: 100%;
         }
+
+        #time-display {
+            text-align: center;
+            /* Center the time text */
+        }
     </style>
 </head>
 
@@ -152,8 +157,8 @@
     </div>
     <div id="controls">
         <button id="reset"><span class="material-icons">
-            skip_previous
-        </span></button>
+                skip_previous
+            </span></button>
         <button id="playPause">
             <span class="material-icons" id="playIcon">play_arrow</span>
             <span class="material-icons" id="pauseIcon" style="display: none;">pause</span>
@@ -252,111 +257,111 @@
 
                 const interpolatedPoints = []; // Array to hold the calculated points
 
-                        //  Simplified for MultiLineStrings ONLY:
-                        for (const feature of features) {
-                            const { start_time, end_time } = feature.properties;
-                            const start = new Date(start_time).getTime();
-                            const end = new Date(end_time).getTime();
+                //  Simplified for MultiLineStrings ONLY:
+                for (const feature of features) {
+                    const { start_time, end_time } = feature.properties;
+                    const start = new Date(start_time).getTime();
+                    const end = new Date(end_time).getTime();
 
-                            if (targetTimestamp >= start && targetTimestamp <= end) {
-                                const timeRatio = (targetTimestamp - start) / (end - start);
-                                const geometry = feature.geometry; // Get the geometry directly
+                    if (targetTimestamp >= start && targetTimestamp <= end) {
+                        const timeRatio = (targetTimestamp - start) / (end - start);
+                        const geometry = feature.geometry; // Get the geometry directly
 
-                                if (geometry.type === 'LineString') { // Handle LineStrings directly
-                                    const line = { type: 'Feature', geometry: geometry };
-                                    const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                        if (geometry.type === 'LineString') { // Handle LineStrings directly
+                            const line = { type: 'Feature', geometry: geometry };
+                            const point = turf.along(line, timeRatio * turf.length(line), { units: 'kilometers' });
+                            interpolatedPoints.push(point);
+                        } else if (geometry.type === 'MultiLineString') {  // Handle MultiLineStrings
+                            for (const lineString of geometry.coordinates) { // Iterate through each LineString
+                                const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
+                                const segmentLength = turf.length(line);
+                                const alongDistance = timeRatio * segmentLength
+                                if (alongDistance <= segmentLength) { // Check to avoid turf.along errors
+                                    const point = turf.along(line, alongDistance, { units: 'kilometers' });
                                     interpolatedPoints.push(point);
-                                } else if (geometry.type === 'MultiLineString') {  // Handle MultiLineStrings
-                                    for (const lineString of geometry.coordinates) { // Iterate through each LineString
-                                        const line = { type: 'Feature', geometry: { type: 'LineString', coordinates: lineString } };
-                                        const segmentLength = turf.length(line);
-                                        const alongDistance = timeRatio * segmentLength
-                                        if (alongDistance <= segmentLength) { // Check to avoid turf.along errors
-                                            const point = turf.along(line, alongDistance, { units: 'kilometers' });
-                                            interpolatedPoints.push(point);
-                                            break; // Stop after finding the point on the first segment
-                                        } else {
-                                            timeRatio -= segmentLength / turf.length(line);
-                                        }
-                                    }
+                                    break; // Stop after finding the point on the first segment
+                                } else {
+                                    timeRatio -= segmentLength / turf.length(line);
                                 }
                             }
                         }
-
-
-                    // *** KEY CHANGE: Update the existing source data ***
-                    const source = map.getSource('interpolated-points');
-                    if (source) {
-                        source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
-                    } else {
-                        console.error("Source 'interpolated-points' not found!");
                     }
                 }
 
-                // ... (rest of your event listeners and animation logic) ...
-                function animate() {
-                    currentSliderValue++;
-                    if (currentSliderValue <= totalSeconds) {
-                        timeSlider.value = currentSliderValue;  // Update slider
-                        const targetTimestamp = startTime + currentSliderValue * 1000;
-                        updateInterpolatedPoints(targetTimestamp);
-                        updateTimeDisplay(targetTimestamp); // Update display *here*
-                        frameId = requestAnimationFrame(animate);
-                    } else {
-                        stopAnimation();
-                    }
-                }
 
-                function stopAnimation() {
-                    if (frameId) cancelAnimationFrame(frameId);
-                    frameId = null;
-                    isPlaying = false;
+                // *** KEY CHANGE: Update the existing source data ***
+                const source = map.getSource('interpolated-points');
+                if (source) {
+                    source.setData({ type: 'FeatureCollection', features: interpolatedPoints });
+                } else {
+                    console.error("Source 'interpolated-points' not found!");
                 }
-
-                function updateTimeDisplay(timestamp) { // Separate function to update the display
-                    const date = new Date(timestamp);
-                    const hours = date.getUTCHours().toString().padStart(2, '0');
-                    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-                    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-                    timeDisplay.textContent = `Time: ${hours}:${minutes}:${seconds}`;
-                }
-
-                function playPauseAnimation() {
-            isPlaying = !isPlaying;
-            if (isPlaying) {
-                animate();
-                document.getElementById('playIcon').style.display = 'none';
-                document.getElementById('pauseIcon').style.display = 'inline';
-            } else {
-                stopAnimation();
-                document.getElementById('playIcon').style.display = 'inline';
-                document.getElementById('pauseIcon').style.display = 'none';
             }
-        }
 
-                playPause.addEventListener('click', playPauseAnimation);
-
-                resetButton.addEventListener('click', () => {
-                    stopAnimation();
-                    currentSliderValue = 0;
-                    timeSlider.value = 0;
-                    const targetTimestamp = startTime; // Reset to start time
+            // ... (rest of your event listeners and animation logic) ...
+            function animate() {
+                currentSliderValue++;
+                if (currentSliderValue <= totalSeconds) {
+                    timeSlider.value = currentSliderValue;  // Update slider
+                    const targetTimestamp = startTime + currentSliderValue * 1000;
                     updateInterpolatedPoints(targetTimestamp);
-                    updateTimeDisplay(targetTimestamp); // Update time display
-                });
-
-                timeSlider.addEventListener('input', () => {
+                    updateTimeDisplay(targetTimestamp); // Update display *here*
+                    frameId = requestAnimationFrame(animate);
+                } else {
                     stopAnimation();
-                    currentSliderValue = parseInt(timeSlider.value, 10);
-                    const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
-                    updateInterpolatedPoints(targetTimestamp);
-                    updateTimeDisplay(targetTimestamp); // Update the display *immediately*
-                });
+                }
+            }
 
-                // Initial update of the time display
-                updateTimeDisplay(startTime);
+            function stopAnimation() {
+                if (frameId) cancelAnimationFrame(frameId);
+                frameId = null;
+                isPlaying = false;
+            }
 
-                 // JavaScript to toggle console state
+            function updateTimeDisplay(timestamp) { // Separate function to update the display
+                const date = new Date(timestamp);
+                const hours = date.getUTCHours().toString().padStart(2, '0');
+                const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+                timeDisplay.textContent = `Time: ${hours}:${minutes}:${seconds}`;
+            }
+
+            function playPauseAnimation() {
+                isPlaying = !isPlaying;
+                if (isPlaying) {
+                    animate();
+                    document.getElementById('playIcon').style.display = 'none';
+                    document.getElementById('pauseIcon').style.display = 'inline';
+                } else {
+                    stopAnimation();
+                    document.getElementById('playIcon').style.display = 'inline';
+                    document.getElementById('pauseIcon').style.display = 'none';
+                }
+            }
+
+            playPause.addEventListener('click', playPauseAnimation);
+
+            resetButton.addEventListener('click', () => {
+                stopAnimation();
+                currentSliderValue = 0;
+                timeSlider.value = 0;
+                const targetTimestamp = startTime; // Reset to start time
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update time display
+            });
+
+            timeSlider.addEventListener('input', () => {
+                stopAnimation();
+                currentSliderValue = parseInt(timeSlider.value, 10);
+                const targetTimestamp = startTime + currentSliderValue * 1000; // Calculate timestamp
+                updateInterpolatedPoints(targetTimestamp);
+                updateTimeDisplay(targetTimestamp); // Update the display *immediately*
+            });
+
+            // Initial update of the time display
+            updateTimeDisplay(startTime);
+
+            // JavaScript to toggle console state
             document.getElementById('toggle-console').addEventListener('click', () => {
                 const consoleDiv = document.getElementById('console');
                 const toggleButton = document.getElementById('toggle-console');
@@ -398,7 +403,7 @@
                 }
             });
 
-            });
+        });
     </script>
 </body>
 
