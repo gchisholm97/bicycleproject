@@ -142,11 +142,10 @@
             start and end location data from <a href="https://divvybikes.com/system-data">Divvy Bikes</a>,
             assumed individual ride route geometries were derived using <a
                 href="https://docs.mapbox.com/api/navigation/directions/">Mapbox's Directions API</a>.
-            By interpolating points every 100 meters, and then distributing each ride's duration across those points,
-            each ride's
-            temporal position was approximated. <br /><br />
+            By temporally interpolation each rider's position along their route using Turf.js, 
+            the map reveales how the urban peloton evolved throughout the day. <br /><br />
 
-            Users can use the player console to scroll through the day, and reveal where Chicagoans rode Divvy Bikes
+            Users can use the player console to scroll through the day, and find out where Chicagoans rode Divvy Bikes
             to soak up the sun on the 4th of July, 2024. <br /><br />
 
             <strong>Concept and development: </strong><a href="https://www.linkedin.com/in/gavchisholm/">Gavin
