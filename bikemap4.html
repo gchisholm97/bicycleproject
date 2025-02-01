@@ -87,6 +87,17 @@
             gap: 10px;
         }
 
+        #fullscreen {
+            position: absolute;
+            cursor: pointer;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+        }
+
         #controls button,
         #controls input[type="range"] {
             border: none;
@@ -98,6 +109,9 @@
             background-color: #adb2b3;
             color: white;
             font-size: 14px;
+        }
+
+        #timer {
             display: flex;
             flex-direction: column;
         }
@@ -111,19 +125,8 @@
             cursor: not-allowed;
         }
 
-        #time-display {
-            padding: 8px 12px;
-        }
-
-        #fullscreen {
-            position: absolute;
-            cursor: pointer;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: Arial, sans-serif;
+        #controls input[type="range"] {
+            width: 100%;
         }
     </style>
 </head>
