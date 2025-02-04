@@ -231,13 +231,20 @@
                 url: 'mapbox://gchisholm97.09gx1iqm',
             });
 
+            map.loadImage(
+        'https://github.com/gchisholm97/bicycleproject/blob/d698d27e4317eee36d1a3d7358ed46658452bd3e',
+        (error, image) => {
+          if (error) throw error;
+
+          map.addImage('points', image);
+
             map.addLayer({
                 id: 'divvy-stations',
                 type: 'symbol',
                 source: 'stations',
                 'source-layer': 'divvy_stations-9remyp',
                 layout: {
-                    'icon-image': 'https://github.com/gchisholm97/bicycleproject/blob/d698d27e4317eee36d1a3d7358ed46658452bd3e/images/divvy-logo.png',
+                    'icon-image': 'points',
                     'icon-size': .5,
                     'icon-pitch-alignment': 'viewport'
                 },
@@ -418,6 +425,7 @@
             });
 
             });
+        });
     </script>
 </body>
 
