@@ -226,6 +226,23 @@
                 },
             });
 
+            map.addSource('stations', {
+                type: 'vector',
+                url: 'mapbox://gchisholm97.09gx1iqm',
+            });
+
+            map.addLayer({
+                id: 'divvy-stations',
+                type: 'symbol',
+                source: 'stations',
+                'source-layer': 'divvy_stations-9remyp',
+                paint: {
+                    'icon-image': images/divvy-logo.png,
+                    'icon-size': .5,
+                    'icon-pitch-alignment': viewport
+                },
+            });
+
             // ... (your time slider, buttons, and variables) ...
             const timeSlider = document.getElementById('time-slider');
             const timeDisplay = document.getElementById('time-display');
