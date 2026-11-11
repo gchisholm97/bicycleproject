@@ -199,15 +199,15 @@ map.on('sourcedata', (e) => {
                 url: 'mapbox://gchisholm97.5urz7kmk',
             });
 
-            map.addSource('lines', {
+            map.addSource('bike-lanes', {
     type: 'vector',
     url: 'mapbox://gchisholm97.hrzan588tq71'
 });
 
 map.addLayer({
-    id: 'lines_layer',
+    id: 'bike-lanes-layer',
     type: 'line',
-    source: 'lines',
+    source: 'bike-lanes',
     'source-layer': 'Bike_Routes_20261111',
 
     paint: {
@@ -283,7 +283,7 @@ map.addLayer({
                 },
             });
 
-            map.moveLayer('lines_layer');
+            map.moveLayer('bike-lanes-layer');
 
             // ... (your time slider, buttons, and variables) ...
             const timeSlider = document.getElementById('time-slider');
