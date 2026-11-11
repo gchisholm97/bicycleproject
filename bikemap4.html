@@ -228,24 +228,25 @@
             });
 
             map.addSource('lines', {
-                type: 'geojson',
-                url: 'mapbox://gchisholm97.hrzan588tq71',
-            });
+    type: 'vector',
+    url: 'mapbox://gchisholm97.hrzan588tq71'
+});
 
-            map.addLayer({
-        id: 'lines_layer',
-        type: 'line',
-        source: 'lines',
-        'source-layer': 'Bike_Routes_20261111',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': 'green',
-            'line-width': 2
-        }
-    });
+map.addLayer({
+    id: 'lines_layer',
+    type: 'line',
+    source: 'lines',
+    'source-layer': 'Bike_Routes_20261111',
+    layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+    },
+    paint: {
+        'line-color': '#00FF00',
+        'line-width': 3,
+        'line-opacity': 1
+    }
+});
 
             map.addSource('stations', {
                 type: 'vector',
