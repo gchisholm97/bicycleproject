@@ -179,13 +179,17 @@
         });
 
         map.on('load', () => {
-            console.log(
-    map.getStyle().layers
-        .filter(layer =>
-            layer.type === 'fill-extrusion'
-        )
-        .map(layer => layer.id)
-);
+            console.log("ALL MAPBOX STYLE LAYERS:");
+
+    map.getStyle().layers.forEach((layer, index) => {
+        console.log({
+            index: index,
+            id: layer.id,
+            type: layer.type,
+            source: layer.source,
+            sourceLayer: layer['source-layer']
+        });
+    });
 
             map.on('error', (e) => {
     console.error('Mapbox error:', e.error);
@@ -290,7 +294,7 @@ map.addLayer({
                 },
             });
 
-            map.moveLayer('bike-lanes-layer');
+            map.moveLayer('heatmap-layer','bike-lanes-layer');
 
             // ... (your time slider, buttons, and variables) ...
             const timeSlider = document.getElementById('time-slider');
