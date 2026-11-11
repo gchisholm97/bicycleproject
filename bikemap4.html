@@ -199,8 +199,13 @@ map.addLayer({
 
     slot: 'middle',
 
+    layout: {
+    "line-cap": "round",   // Gives the ends of the line a rounded/capsule shape
+    "line-join": "round"   // Rounds the corners/joins where line segments connect
+  },
+
     paint: {
-        'line-color': '#C3FFED',
+        'line-color': '#0D98BA',
         'line-width': 3,
         'line-opacity': 1
     }
