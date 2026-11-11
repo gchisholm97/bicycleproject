@@ -191,26 +191,6 @@
     url: 'mapbox://gchisholm97.hrzan588tq71'
 });
 
-map.addLayer({
-    id: 'bike-lanes-layer',
-    type: 'line',
-    source: 'bike-lanes',
-    'source-layer': 'rcmz1btp0apnvhvpxve3',
-
-    slot: 'middle',
-
-    layout: {
-    "line-cap": "round",   // Gives the ends of the line a rounded/capsule shape
-    "line-join": "round"   // Rounds the corners/joins where line segments connect
-  },
-
-    paint: {
-        'line-color': '#0D98BA',
-        'line-width': 3,
-        'line-opacity': 1
-    }
-});
-
             map.addLayer({
                 id: 'bike-routes',
                 type: 'line',
@@ -253,6 +233,26 @@ map.addLayer({
                     ],
                 },
             });
+
+            map.addLayer({
+    id: 'bike-lanes-layer',
+    type: 'line',
+    source: 'bike-lanes',
+    'source-layer': 'rcmz1btp0apnvhvpxve3',
+
+    slot: 'middle',
+
+    layout: {
+    "line-cap": "round",   // Gives the ends of the line a rounded/capsule shape
+    "line-join": "round"   // Rounds the corners/joins where line segments connect
+  },
+
+    paint: {
+        'line-color': '#0D98BA',
+        'line-width': 3,
+        'line-opacity': 1
+    }
+});
 
             map.addSource('stations', {
                 type: 'vector',
