@@ -183,78 +183,14 @@
 
 const style = map.getStyle();
 
-console.log("STYLE OBJECT:", style);
-console.log("LAYERS ARRAY:", style.layers);
-console.log("NUMBER OF LAYERS:", style.layers?.length);
+console.log("IMPORTS:", style.imports);
 
-if (style.layers && style.layers.length > 0) {
+console.log("ROOT SOURCES:", style.sources);
 
-    style.layers.forEach((layer, index) => {
-        console.log(
-            index,
-            layer.id,
-            layer.type,
-            layer.source,
-            layer['source-layer']
-        );
-    });
+console.log("ROOT LAYERS:", style.layers);
 
-} else {
-    console.error("No style layers found!");
-}
+console.log("STYLE METADATA:", style.metadata);
 
-console.log("EXTRUSION LAYERS:");
-
-const extrusionLayers = style.layers.filter(
-    layer => layer.type === 'fill-extrusion'
-);
-
-console.table(extrusionLayers.map(layer => ({
-    id: layer.id,
-    type: layer.type,
-    source: layer.source,
-    sourceLayer: layer['source-layer']
-})));
-
-
-map.on('sourcedata', (e) => {
-    if (e.sourceId === 'lines') {
-        console.log('Lines source status:', {
-            loaded: e.isSourceLoaded,
-            sourceDataType: e.sourceDataType,
-            sourceId: e.sourceId
-        });
-    }
-});
-
-const style = map.getStyle();
-
-console.log("STYLE IMPORTS:", style.imports);
-
-console.log("STYLE SOURCES:", style.sources);
-
-console.log("STYLE ROOT LAYERS:", style.layers);
-
-const style = map.getStyle();
-
-style.imports.forEach((importedStyle, index) => {
-
-    console.log("IMPORT:", index);
-    console.log("IMPORT ID:", importedStyle.id);
-    console.log("IMPORT URL:", importedStyle.url);
-    console.log("IMPORT CONFIG:", importedStyle.config);
-
-});
-
-const sources = map.getStyle().sources;
-
-Object.keys(sources).forEach(sourceId => {
-
-    console.log("SOURCE:", sourceId);
-    console.log("SOURCE TYPE:", sources[sourceId].type);
-    console.log("SOURCE DETAILS:", sources[sourceId]);
-
-});
             // ... (your map source and layer for bike routes) ...
             map.addSource('line-data', {
                 type: 'vector',
