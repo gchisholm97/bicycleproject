@@ -226,6 +226,35 @@ map.on('sourcedata', (e) => {
         });
     }
 });
+
+const style = map.getStyle();
+
+console.log("STYLE IMPORTS:", style.imports);
+
+console.log("STYLE SOURCES:", style.sources);
+
+console.log("STYLE ROOT LAYERS:", style.layers);
+
+const style = map.getStyle();
+
+style.imports.forEach((importedStyle, index) => {
+
+    console.log("IMPORT:", index);
+    console.log("IMPORT ID:", importedStyle.id);
+    console.log("IMPORT URL:", importedStyle.url);
+    console.log("IMPORT CONFIG:", importedStyle.config);
+
+});
+
+const sources = map.getStyle().sources;
+
+Object.keys(sources).forEach(sourceId => {
+
+    console.log("SOURCE:", sourceId);
+    console.log("SOURCE TYPE:", sources[sourceId].type);
+    console.log("SOURCE DETAILS:", sources[sourceId]);
+
+});
             // ... (your map source and layer for bike routes) ...
             map.addSource('line-data', {
                 type: 'vector',
