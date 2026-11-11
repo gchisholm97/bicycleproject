@@ -208,6 +208,8 @@ map.addLayer({
     source: 'bike-lanes',
     'source-layer': 'rcmz1btp0apnvhvpxve3',
 
+    slot: 'middle',
+
     paint: {
         'line-color': '#C3FFED',
         'line-width': 5,
@@ -234,6 +236,7 @@ map.addLayer({
                 id: 'heatmap-layer',
                 type: 'heatmap',
                 source: 'interpolated-points',
+                slot: 'middle',
                 paint: {
                     'heatmap-intensity': 1,
                     'heatmap-radius': 4,
