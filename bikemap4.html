@@ -179,17 +179,6 @@
         });
 
         map.on('load', () => {
-            console.log("MAP LOADED");
-
-const style = map.getStyle();
-
-console.log("IMPORTS:", style.imports);
-
-console.log("ROOT SOURCES:", style.sources);
-
-console.log("ROOT LAYERS:", style.layers);
-
-console.log("STYLE METADATA:", style.metadata);
 
             // ... (your map source and layer for bike routes) ...
             map.addSource('line-data', {
@@ -212,7 +201,7 @@ map.addLayer({
 
     paint: {
         'line-color': '#C3FFED',
-        'line-width': 5,
+        'line-width': 3,
         'line-opacity': 1
     }
 });
