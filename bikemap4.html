@@ -179,21 +179,43 @@
         });
 
         map.on('load', () => {
-            console.log("ALL MAPBOX STYLE LAYERS:");
+            console.log("MAP LOADED");
 
-    map.getStyle().layers.forEach((layer, index) => {
-        console.log({
-            index: index,
-            id: layer.id,
-            type: layer.type,
-            source: layer.source,
-            sourceLayer: layer['source-layer']
-        });
+const style = map.getStyle();
+
+console.log("STYLE OBJECT:", style);
+console.log("LAYERS ARRAY:", style.layers);
+console.log("NUMBER OF LAYERS:", style.layers?.length);
+
+if (style.layers && style.layers.length > 0) {
+
+    style.layers.forEach((layer, index) => {
+        console.log(
+            index,
+            layer.id,
+            layer.type,
+            layer.source,
+            layer['source-layer']
+        );
     });
 
-            map.on('error', (e) => {
-    console.error('Mapbox error:', e.error);
-});
+} else {
+    console.error("No style layers found!");
+}
+
+console.log("EXTRUSION LAYERS:");
+
+const extrusionLayers = style.layers.filter(
+    layer => layer.type === 'fill-extrusion'
+);
+
+console.table(extrusionLayers.map(layer => ({
+    id: layer.id,
+    type: layer.type,
+    source: layer.source,
+    sourceLayer: layer['source-layer']
+})));
+
 
 map.on('sourcedata', (e) => {
     if (e.sourceId === 'lines') {
