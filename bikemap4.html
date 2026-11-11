@@ -179,6 +179,20 @@
         });
 
         map.on('load', () => {
+
+            map.on('error', (e) => {
+    console.error('Mapbox error:', e.error);
+});
+
+map.on('sourcedata', (e) => {
+    if (e.sourceId === 'lines') {
+        console.log('Lines source status:', {
+            loaded: e.isSourceLoaded,
+            sourceDataType: e.sourceDataType,
+            sourceId: e.sourceId
+        });
+    }
+});
             // ... (your map source and layer for bike routes) ...
             map.addSource('line-data', {
                 type: 'vector',
@@ -195,18 +209,13 @@ map.addLayer({
     type: 'line',
     source: 'lines',
     'source-layer': 'Bike_Routes_20261111',
-    layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-    },
+
     paint: {
-        'line-color': '#00FF00',
-        'line-width': 8,
+        'line-color': '#ff0000',
+        'line-width': 5,
         'line-opacity': 1
     }
 });
-
-map.moveLayer('lines_layer');
 
             map.addLayer({
                 id: 'bike-routes',
@@ -273,6 +282,8 @@ map.moveLayer('lines_layer');
                     'icon-pitch-alignment': 'viewport'
                 },
             });
+
+            map.moveLayer('lines_layer');
 
             // ... (your time slider, buttons, and variables) ...
             const timeSlider = document.getElementById('time-slider');
