@@ -179,6 +179,13 @@
         });
 
         map.on('load', () => {
+            console.log(
+    map.getStyle().layers
+        .filter(layer =>
+            layer.type === 'fill-extrusion'
+        )
+        .map(layer => layer.id)
+);
 
             map.on('error', (e) => {
     console.error('Mapbox error:', e.error);
